@@ -1,87 +1,45 @@
-# Active Context: Next.js Starter Template
+# Active Context: 树形任务管理器
 
 ## Current State
 
-**Template Status**: ✅ Ready for development
+**应用状态**: ✅ 功能完成
 
-The template is a clean Next.js 16 starter with TypeScript and Tailwind CSS 4. It's ready for AI-assisted expansion to build any type of application.
+一个树形任务分解管理器，左侧显示任务树，右侧显示任务详情。支持任务状态切换和展开/收起子任务。
 
 ## Recently Completed
 
-- [x] Base Next.js 16 setup with App Router
-- [x] TypeScript configuration with strict mode
-- [x] Tailwind CSS 4 integration
-- [x] ESLint configuration
-- [x] Memory bank documentation
-- [x] Recipe system for common features
+- [x] 创建任务类型定义 (src/types/index.ts)
+- [x] 创建任务状态管理 Context (src/context/TaskContext.tsx)
+- [x] 创建树形菜单组件 TreeMenu (src/components/TreeMenu.tsx)
+- [x] 创建任务详情面板 TaskDetail (src/components/TaskDetail.tsx)
+- [x] 整合主页面布局 (src/app/page.tsx)
 
 ## Current Structure
 
 | File/Directory | Purpose | Status |
 |----------------|---------|--------|
-| `src/app/page.tsx` | Home page | ✅ Ready |
-| `src/app/layout.tsx` | Root layout | ✅ Ready |
-| `src/app/globals.css` | Global styles | ✅ Ready |
-| `.kilocode/` | AI context & recipes | ✅ Ready |
+| `src/types/index.ts` | 任务类型定义 | ✅ |
+| `src/context/TaskContext.tsx` | 任务状态管理 | ✅ |
+| `src/components/TreeMenu.tsx` | 左侧树形菜单 | ✅ |
+| `src/components/TaskDetail.tsx` | 右侧任务详情 | ✅ |
+| `src/app/page.tsx` | 主页面 | ✅ |
 
-## Current Focus
+## 功能特性
 
-The template is ready. Next steps depend on user requirements:
-
-1. What type of application to build
-2. What features are needed
-3. Design/branding preferences
-
-## Quick Start Guide
-
-### To add a new page:
-
-Create a file at `src/app/[route]/page.tsx`:
-```tsx
-export default function NewPage() {
-  return <div>New page content</div>;
-}
-```
-
-### To add components:
-
-Create `src/components/` directory and add components:
-```tsx
-// src/components/ui/Button.tsx
-export function Button({ children }: { children: React.ReactNode }) {
-  return <button className="px-4 py-2 bg-blue-600 text-white rounded">{children}</button>;
-}
-```
-
-### To add a database:
-
-Follow `.kilocode/recipes/add-database.md`
-
-### To add API routes:
-
-Create `src/app/api/[route]/route.ts`:
-```tsx
-import { NextResponse } from "next/server";
-
-export async function GET() {
-  return NextResponse.json({ message: "Hello" });
-}
-```
-
-## Available Recipes
-
-| Recipe | File | Use Case |
-|--------|------|----------|
-| Add Database | `.kilocode/recipes/add-database.md` | Data persistence with Drizzle + SQLite |
-
-## Pending Improvements
-
-- [ ] Add more recipes (auth, email, etc.)
-- [ ] Add example components
-- [ ] Add testing setup recipe
+- 树形任务展示，支持多级展开
+- 点击任务显示详情
+- 状态切换（待处理/进行中/已完成）
+- 子任务列表展示
 
 ## Session History
 
 | Date | Changes |
 |------|---------|
-| Initial | Template created with base setup |
+| 2026-04-14 | 创建树形任务管理器，初始包含4个示例任务 |
+
+## Pending Improvements
+
+- [ ] 添加新任务功能
+- [ ] 编辑任务功能
+- [ ] 删除任务功能
+- [ ] 持久化存储
