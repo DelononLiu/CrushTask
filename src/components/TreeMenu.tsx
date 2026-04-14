@@ -19,8 +19,8 @@ function TaskItem({ task, depth = 0, onAddChild }: { task: Task; depth?: number;
   return (
     <div>
       <div
-        className={`group flex items-center gap-2 py-2 px-3 cursor-pointer transition-colors rounded-md ${
-          isSelected ? 'bg-blue-600 text-white' : 'hover:bg-neutral-800'
+        className={`group flex items-center gap-2 py-1 px-3 cursor-pointer transition-colors rounded-md ${
+          isSelected ? 'bg-blue-600 text-white' : 'hover:bg-neutral-800 text-neutral-200'
         }`}
         style={{ paddingLeft: `${depth * 16 + 12}px` }}
         onClick={() => setSelectedTask(task)}
@@ -78,9 +78,9 @@ export default function TreeMenu() {
 
   return (
     <>
-      <div className="h-full overflow-y-auto py-4">
-        <div className="px-4 mb-4 flex items-center justify-between">
-          <div className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+      <div className="h-full overflow-y-auto py-2 text-neutral-200">
+        <div className="px-4 mb-2 flex items-center justify-between">
+          <div className="text-xs font-semibold text-neutral-400 uppercase tracking-wider">
             任务分解
           </div>
           <button
