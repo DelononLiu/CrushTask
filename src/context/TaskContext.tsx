@@ -10,6 +10,8 @@ interface TaskContextType {
   toggleExpand: (taskId: string) => void;
   updateTaskStatus: (taskId: string, status: Task['status']) => void;
   updateTaskPriority: (taskId: string, priority: Task['priority']) => void;
+  addTask: (parentId: string | null, task: Omit<Task, 'id' | 'children' | 'expanded'>) => void;
+  deleteTask: (taskId: string) => void;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -30,8 +32,23 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     setTasks(prev => updateTaskPriorityInTree(prev, taskId, priority));
   };
 
+  const addTask = (parentId: string | null, task: Omit<Task, 'id' | 'children' | 'expanded'>) => {
+    const newId = parentId ? `${parentId}-${Date.now()}` : `${Date.now()}`;
+    const newTask: Task = { ...task, id: newId, children: [], expanded: true };
+    
+    if (parentId === null) {
+      setTasks(prev => [...prev, newTask]);
+    } else {
+      setTasks(prev => addTaskToParent(prev, parentId, newTask));
+    }
+  };
+
+  const deleteTask = (taskId: string) => {
+    setTasks(prev => removeTaskFromTree(prev, taskId));
+  };
+
   return (
-    <TaskContext.Provider value={{ tasks, selectedTask, setSelectedTask, toggleExpand, updateTaskStatus, updateTaskPriority }}>
+    <TaskContext.Provider value={{ tasks, selectedTask, setSelectedTask, toggleExpand, updateTaskStatus, updateTaskPriority, addTask, deleteTask }}>
       {children}
     </TaskContext.Provider>
   );
@@ -77,4 +94,25 @@ function updateTaskPriorityInTree(tasks: Task[], taskId: string, priority: Task[
     }
     return task;
   });
+}
+
+function addTaskToParent(tasks: Task[], parentId: string, newTask: Task): Task[] {
+  return tasks.map(task => {
+    if (task.id === parentId) {
+      return { ...task, children: [...task.children, newTask], expanded: true };
+    }
+    if (task.children.length > 0) {
+      return { ...task, children: addTaskToParent(task.children, parentId, newTask) };
+    }
+    return task;
+  });
+}
+
+function removeTaskFromTree(tasks: Task[], taskId: string): Task[] {
+  return tasks
+    .filter(task => task.id !== taskId)
+    .map(task => ({
+      ...task,
+      children: removeTaskFromTree(task.children, taskId),
+    }));
 }
