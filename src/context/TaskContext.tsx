@@ -9,6 +9,7 @@ interface TaskContextType {
   setSelectedTask: (task: Task | null) => void;
   toggleExpand: (taskId: string) => void;
   updateTaskStatus: (taskId: string, status: Task['status']) => void;
+  updateTaskPriority: (taskId: string, priority: Task['priority']) => void;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -25,8 +26,12 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     setTasks(prev => updateTaskStatusInTree(prev, taskId, status));
   };
 
+  const updateTaskPriority = (taskId: string, priority: Task['priority']) => {
+    setTasks(prev => updateTaskPriorityInTree(prev, taskId, priority));
+  };
+
   return (
-    <TaskContext.Provider value={{ tasks, selectedTask, setSelectedTask, toggleExpand, updateTaskStatus }}>
+    <TaskContext.Provider value={{ tasks, selectedTask, setSelectedTask, toggleExpand, updateTaskStatus, updateTaskPriority }}>
       {children}
     </TaskContext.Provider>
   );
@@ -57,6 +62,18 @@ function updateTaskStatusInTree(tasks: Task[], taskId: string, status: Task['sta
     }
     if (task.children.length > 0) {
       return { ...task, children: updateTaskStatusInTree(task.children, taskId, status) };
+    }
+    return task;
+  });
+}
+
+function updateTaskPriorityInTree(tasks: Task[], taskId: string, priority: Task['priority']): Task[] {
+  return tasks.map(task => {
+    if (task.id === taskId) {
+      return { ...task, priority };
+    }
+    if (task.children.length > 0) {
+      return { ...task, children: updateTaskPriorityInTree(task.children, taskId, priority) };
     }
     return task;
   });
