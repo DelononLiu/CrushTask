@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "taskCrush",
+  title: "CrushTask",
   description: "任务管理器",
 };
 
