@@ -19,20 +19,20 @@ export default function Home() {
 
   return (
     <TaskProvider>
-      <main className="h-screen flex bg-neutral-900">
-        {sidebarVisible && (
-          <aside className={`fixed md:relative z-30 md:z-0 w-64 h-full border-r border-neutral-800 bg-neutral-900 flex flex-col transition-transform duration-300 md:transition-none ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
-            <div className="md:hidden p-4 flex justify-between items-center border-b border-neutral-800">
-              <span className="font-medium text-white">CrushTask</span>
-              <button onClick={() => setMobileMenuOpen(false)} className="text-neutral-400">✕</button>
-            </div>
+      <main className="h-screen flex bg-neutral-900 relative">
+        <aside className={`fixed md:fixed top-0 left-0 h-full z-30 border-r border-neutral-800 bg-neutral-900 flex flex-col transition-all duration-300 ${sidebarVisible ? 'w-64 translate-x-0' : 'w-16 -translate-x-full md:translate-x-0'}`}>
+          <div className="md:hidden p-4 flex justify-between items-center border-b border-neutral-800">
+            <span className="font-medium text-white">CrushTask</span>
+            <button onClick={() => setMobileMenuOpen(false)} className="text-neutral-400">✕</button>
+          </div>
+          <div className={`flex-1 overflow-hidden ${sidebarVisible ? '' : 'md:hidden'}`}>
             <TreeMenu />
-            <div className="mt-auto p-4 border-t border-neutral-800">
-              <div className="text-sm font-medium text-neutral-400">CrushTask</div>
-              <div className="text-xs text-neutral-600">任务管理器</div>
-            </div>
-          </aside>
-        )}
+          </div>
+          <div className={`mt-auto p-4 border-t border-neutral-800 ${sidebarVisible ? '' : 'md:hidden'}`}>
+            <div className="text-sm font-medium text-neutral-400">CrushTask</div>
+            <div className="text-xs text-neutral-600">任务管理器</div>
+          </div>
+        </aside>
         
         {mobileMenuOpen && (
           <div 
@@ -41,8 +41,8 @@ export default function Home() {
           />
         )}
 
-        <section className="flex-1 bg-neutral-950 relative flex flex-col min-w-0">
-          <div className="flex items-center gap-2 p-4 pb-0 md:p-4">
+        <section className={`flex-1 bg-neutral-950 relative flex flex-col min-w-0 transition-all duration-300 ${sidebarVisible ? 'md:ml-64' : 'md:ml-16'}`}>
+          <div className="flex items-center gap-2 p-4 pb-0 md:pt-4">
             <button
               onClick={() => {
                 if (!isMobile) {
@@ -55,6 +55,14 @@ export default function Home() {
             >
               {sidebarVisible ? '◀' : '▶'}
             </button>
+            {!sidebarVisible && !isMobile && (
+              <button
+                onClick={() => setSidebarVisible(true)}
+                className="text-neutral-400 hover:text-white text-sm"
+              >
+                CrushTask
+              </button>
+            )}
             <span className="md:hidden text-sm text-neutral-400">CrushTask</span>
           </div>
           <div className="flex-1 overflow-hidden">
