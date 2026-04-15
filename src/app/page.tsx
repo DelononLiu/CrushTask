@@ -33,10 +33,10 @@ export default function Home() {
   return (
     <TaskProvider>
       <main className="h-screen flex bg-neutral-900 relative">
-        <aside className={`fixed md:fixed top-0 left-0 h-full z-30 border-r border-neutral-800 bg-neutral-900 flex flex-col transition-all duration-300 ${
+        <aside className={`fixed md:relative top-0 left-0 h-full z-30 border-r border-neutral-800 bg-neutral-900 flex flex-col transition-all duration-300 ${
           isMobile 
             ? (mobileMenuOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64')
-            : (sidebarVisible ? 'translate-x-0 w-64' : 'translate-x-0 w-16')
+            : (sidebarVisible ? 'w-64' : 'w-16')
         }`}>
           <div className="md:hidden p-4 flex justify-between items-center border-b border-neutral-800">
             <span className="font-medium text-white">CrushTask</span>
