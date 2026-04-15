@@ -23,13 +23,13 @@ export default function Home() {
         {sidebarVisible && (
           <aside className={`fixed md:relative z-30 md:z-0 w-64 h-full border-r border-neutral-800 bg-neutral-900 flex flex-col transition-transform duration-300 md:transition-none ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
             <div className="md:hidden p-4 flex justify-between items-center border-b border-neutral-800">
-              <span className="font-medium text-white">gTask</span>
+              <span className="font-medium text-white">taskCrush</span>
               <button onClick={() => setMobileMenuOpen(false)} className="text-neutral-400">✕</button>
             </div>
             <TreeMenu />
             <div className="mt-auto p-4 border-t border-neutral-800">
-              <div className="text-sm font-medium text-neutral-400">gTask</div>
-              <div className="text-xs text-neutral-600">任务分解管理器</div>
+              <div className="text-sm font-medium text-neutral-400">taskCrush</div>
+              <div className="text-xs text-neutral-600">任务管理器</div>
             </div>
           </aside>
         )}
@@ -55,7 +55,7 @@ export default function Home() {
             >
               {sidebarVisible ? '◀' : '▶'}
             </button>
-            <span className="md:hidden text-sm text-neutral-400">gTask</span>
+            <span className="md:hidden text-sm text-neutral-400">taskCrush</span>
           </div>
           <div className="flex-1 overflow-hidden">
             <TaskDetail />

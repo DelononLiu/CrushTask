@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "任务管理器",
-  description: "树形任务分解管理器",
+  title: "taskCrush",
+  description: "任务管理器",
 };
 
 export default function RootLayout({
