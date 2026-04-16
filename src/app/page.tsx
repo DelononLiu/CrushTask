@@ -5,12 +5,14 @@ import { TaskProvider, useTask } from '@/context/TaskContext';
 import { Task } from '@/types';
 import TaskDetail from '@/components/TaskDetail';
 
+type View = 'list' | 'detail';
+
 function TaskContent() {
   const { tasks } = useTask();
   const [todos, setTodos] = useState<Task[]>(tasks);
   const [activeTab, setActiveTab] = useState<'today' | 'projects' | 'tags' | 'profile'>('today');
   const [selectedProject, setSelectedProject] = useState('全部');
-  const [showTaskDetail, setShowTaskDetail] = useState(false);
+  const [currentView, setCurrentView] = useState<View>('list');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const projects = ['全部', 'CRM系统', 'AI助手', '学习', '生活'];
@@ -27,7 +29,12 @@ function TaskContent() {
 
   const openTaskDetail = (task: Task) => {
     setSelectedTask(task);
-    setShowTaskDetail(true);
+    setCurrentView('detail');
+  };
+
+  const goBack = () => {
+    setCurrentView('list');
+    setSelectedTask(null);
   };
 
   const filteredTasks = selectedProject === '全部' 
@@ -35,6 +42,25 @@ function TaskContent() {
     : todos.filter(t => t.tags.includes(selectedProject) || t.title.includes(selectedProject));
 
   const completedCount = todos.filter(t => t.status === 'completed').length;
+
+  if (currentView === 'detail' && selectedTask) {
+    return (
+      <div className="h-screen flex flex-col bg-[#0a0a0a]">
+        <div className="flex items-center p-4 border-b border-gray-800">
+          <button 
+            onClick={goBack} 
+            className="w-8 h-8 rounded-full bg-gray-800 text-white flex items-center justify-center mr-3"
+          >
+            ←
+          </button>
+          <h1 className="text-white font-medium flex-1 truncate">{selectedTask.title}</h1>
+        </div>
+        <div className="flex-1 overflow-hidden">
+          <TaskDetail task={selectedTask} />
+        </div>
+      </div>
+    );
+  }
 
   const renderToday = () => (
     <div className="flex-1 overflow-y-auto p-5">
@@ -196,7 +222,7 @@ function TaskContent() {
   );
 
   return (
-    <div className="h-screen flex flex-col bg-[#0a0a0a] relative">
+    <div className="h-screen flex flex-col bg-[#0a0a0a]">
       {activeTab === 'today' && renderToday()}
       {activeTab === 'projects' && renderProjects()}
       {activeTab === 'tags' && renderTags()}
@@ -221,28 +247,6 @@ function TaskContent() {
           </button>
         ))}
       </nav>
-
-      {showTaskDetail && selectedTask && (
-        <div className="fixed inset-0 bg-black/60 flex z-50" onClick={() => setShowTaskDetail(false)}>
-          <div 
-            className="w-full max-w-lg mx-auto my-4 bg-gray-900 rounded-3xl overflow-hidden flex flex-col max-h-[calc(100vh-2rem)]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between p-4 border-b border-gray-800">
-              <h3 className="text-lg font-medium text-white">{selectedTask.title}</h3>
-              <button 
-                onClick={() => setShowTaskDetail(false)} 
-                className="w-8 h-8 rounded-full bg-gray-800 text-gray-400 flex items-center justify-center"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto">
-              <TaskDetail task={selectedTask} />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
