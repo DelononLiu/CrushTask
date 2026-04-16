@@ -1,29 +1,32 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import { Task, TaskNode, AIMessage } from '@/types';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { Task, AIMessage } from '@/types';
 
 interface TaskDetailProps {
   task: Task;
 }
 
+function getInitialMessages(nodes: {id: string; title: string; aiMessages: AIMessage[]}[], activeNodeId: string): AIMessage[] {
+  const node = nodes.find(n => n.id === activeNodeId);
+  if (node?.aiMessages.length) return node.aiMessages;
+  if (node) {
+    return [{ id: 'init', role: 'assistant', content: `你好！我是AI助手，现在是"${node.title}"阶段。告诉我你需要完成什么？`, timestamp: new Date().toLocaleString() }];
+  }
+  return [];
+}
+
 export default function TaskDetail({ task }: TaskDetailProps) {
-  const [activeNodeId, setActiveNodeId] = useState<string>(task.currentNodeId || task.nodes?.[0]?.id || '');
+  const nodes = useMemo(() => task.nodes || [], [task.nodes]);
+  const defaultNodeId = useMemo(() => task.currentNodeId || nodes[0]?.id || '', [nodes, task.currentNodeId]);
+  
+  const [activeNodeId, setActiveNodeId] = useState(defaultNodeId);
   const [input, setInput] = useState('');
   const [msgId, setMsgId] = useState(1);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [messages, setMessages] = useState<AIMessage[]>(() => getInitialMessages(nodes, defaultNodeId));
 
-  const nodes = task.nodes || [];
-  const activeNode = nodes.find(n => n.id === activeNodeId) || nodes[0];
-  const [messages, setMessages] = useState<AIMessage[]>(() => {
-    const nodes = task.nodes || [];
-    const currentNode = nodes.find(n => n.id === (task.currentNodeId || nodes[0]?.id));
-    if (currentNode?.aiMessages.length) return currentNode.aiMessages;
-    if (currentNode) {
-      return [{ id: 'init', role: 'assistant', content: `你好！我是AI助手，现在是"${currentNode.title}"阶段。告诉我你需要完成什么？`, timestamp: new Date().toLocaleString() }];
-    }
-    return [];
-  });
+  const activeNode = useMemo(() => nodes.find(n => n.id === activeNodeId) || nodes[0], [nodes, activeNodeId]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -66,6 +69,11 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     }, 800);
   };
 
+  const handleNodeChange = (newNodeId: string) => {
+    setActiveNodeId(newNodeId);
+    setMessages(getInitialMessages(nodes, newNodeId));
+  };
+
   return (
     <div className="h-full flex flex-col bg-[#0a0a0a]">
       {/* 顶部：横向节点列表 */}
@@ -77,7 +85,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
           return (
             <button
               key={node.id}
-              onClick={() => setActiveNodeId(node.id)}
+              onClick={() => handleNodeChange(node.id)}
               className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all shrink-0 ${
                 isActive 
                   ? 'bg-blue-600/30 border border-blue-500' 
