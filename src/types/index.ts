@@ -1,3 +1,19 @@
+export interface TaskNode {
+  id: string;
+  title: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'failed';
+  startTime?: string;
+  endTime?: string;
+  aiMessages: AIMessage[];
+}
+
+export interface AIMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -10,6 +26,8 @@ export interface Task {
   dueDate?: string;
   children: Task[];
   expanded?: boolean;
+  nodes?: TaskNode[];
+  currentNodeId?: string;
 }
 
 export const initialTasks: Task[] = [
@@ -23,6 +41,23 @@ export const initialTasks: Task[] = [
     techStack: ['React', 'Node.js', 'PostgreSQL'],
     designNotes: '专业商务风格，数据看板为主',
     expanded: true,
+    nodes: [
+      { id: 'n1', title: '需求分析', status: 'completed', startTime: '2024-01-10', endTime: '2024-01-15', aiMessages: [
+        { id: 'm1', role: 'user', content: '开始CRM系统的需求分析', timestamp: '2024-01-10 09:00' },
+        { id: 'm2', role: 'assistant', content: '好的，我来帮你梳理CRM系统的需求。首先需要了解：\n1. 目标用户规模\n2. 核心业务流程\n3. 需要集成的外部系统', timestamp: '2024-01-10 09:01' }
+      ]},
+      { id: 'n2', title: '系统设计', status: 'completed', startTime: '2024-01-16', endTime: '2024-01-25', aiMessages: [
+        { id: 'm3', role: 'user', content: '需求已确定，开始系统设计', timestamp: '2024-01-16 10:00' },
+        { id: 'm4', role: 'assistant', content: '根据需求，我设计了以下架构：\n- 前端：React + TypeScript\n- 后端：Node.js + Express\n- 数据库：PostgreSQL\n- 认证：JWT + SSO', timestamp: '2024-01-16 10:05' }
+      ]},
+      { id: 'n3', title: '前端开发', status: 'in_progress', startTime: '2024-01-26', aiMessages: [
+        { id: 'm5', role: 'user', content: '开始前端开发工作', timestamp: '2024-01-26 09:00' },
+        { id: 'm6', role: 'assistant', content: '好的，开始前端开发。已创建项目结构，主要包括：\n1. 登录页面\n2. 客户列表页\n3. 客户详情页\n4. 数据看板', timestamp: '2024-01-26 09:15' }
+      ]},
+      { id: 'n4', title: '后端开发', status: 'pending', aiMessages: [] },
+      { id: 'n5', title: '测试与部署', status: 'pending', aiMessages: [] }
+    ],
+    currentNodeId: 'n3',
     children: [
       {
         id: 'p1-1',

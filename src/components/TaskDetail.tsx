@@ -2,12 +2,15 @@
 
 import { useState } from 'react';
 import { useTask } from '@/context/TaskContext';
+import { TaskNode } from '@/types';
+import TaskFlowDiagram from './TaskFlowDiagram';
 
-type Tab = 'detail' | 'chat';
+type Tab = 'detail' | 'flow' | 'chat';
 
 export default function TaskDetail() {
   const { selectedTask, updateTaskStatus } = useTask();
-  const [activeTab, setActiveTab] = useState<Tab>('detail');
+  const [activeTab, setActiveTab] = useState<Tab>('flow');
+  const [selectedNode, setSelectedNode] = useState<TaskNode | null>(null);
 
   const statusLabels = {
     pending: '待处理',
@@ -31,6 +34,16 @@ export default function TaskDetail() {
     pending: 'bg-[#71717a]',
     in_progress: 'bg-yellow-500',
     completed: 'bg-green-500',
+  };
+
+  const handleNodeClick = (node: TaskNode) => {
+    setSelectedNode(node);
+    setActiveTab('chat');
+  };
+
+  const handleBackToFlow = () => {
+    setSelectedNode(null);
+    setActiveTab('flow');
   };
 
   const renderDetail = () => {
@@ -128,6 +141,43 @@ export default function TaskDetail() {
     );
   };
 
+  const renderFlow = () => {
+    if (!selectedTask) return null;
+    
+    return (
+      <div className="p-4">
+        <h2 className="text-sm font-medium text-[#71717a] mb-4">进度流程</h2>
+        <TaskFlowDiagram 
+          nodes={selectedTask.nodes || []}
+          currentNodeId={selectedTask.currentNodeId}
+          onNodeClick={handleNodeClick}
+        />
+      </div>
+    );
+  };
+
+  const renderChat = () => {
+    if (!selectedTask) return null;
+    
+    const node = selectedNode || selectedTask.nodes?.find(n => n.id === selectedTask.currentNodeId);
+    
+    if (!node) {
+      return (
+        <div className="h-full flex items-center justify-center text-[#71717a]">
+          <div className="text-center">
+            <div className="text-4xl mb-4">🤖</div>
+            <p>暂无AI对话记录</p>
+            <p className="text-xs mt-2">点击上方进度节点查看对话</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <NodeChatView node={node} onBack={handleBackToFlow} />
+    );
+  };
+
   if (!selectedTask) {
     return (
       <div className="h-full flex items-center justify-center text-[#71717a]">
@@ -153,6 +203,16 @@ export default function TaskDetail() {
           详情
         </button>
         <button
+          onClick={() => { setActiveTab('flow'); setSelectedNode(null); }}
+          className={`flex-1 py-3 text-sm font-medium transition-colors ${
+            activeTab === 'flow'
+              ? 'text-blue-500 border-b-2 border-blue-500'
+              : 'text-[#71717a] hover:text-white'
+          }`}
+        >
+          进度流
+        </button>
+        <button
           onClick={() => setActiveTab('chat')}
           className={`flex-1 py-3 text-sm font-medium transition-colors ${
             activeTab === 'chat'
@@ -165,40 +225,69 @@ export default function TaskDetail() {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {activeTab === 'detail' ? renderDetail() : <TaskAIChat />}
+        {activeTab === 'detail' && renderDetail()}
+        {activeTab === 'flow' && renderFlow()}
+        {activeTab === 'chat' && renderChat()}
       </div>
     </div>
   );
 }
 
-function TaskAIChat() {
-  const [messages, setMessages] = useState<{id: string, role: string, content: string}[]>([
-    { id: '1', role: 'assistant', content: '我来帮你分析这个任务...' }
+function NodeChatView({ node, onBack }: { node: TaskNode; onBack: () => void }) {
+  const [messages, setMessages] = useState(node.aiMessages.length > 0 ? node.aiMessages : [
+    { id: 'init', role: 'assistant' as const, content: `你好！我是AI助手，现在是"${node.title}"节点。有什么可以帮你的？`, timestamp: new Date().toLocaleString() }
   ]);
   const [input, setInput] = useState('');
-  const [msgId, setMsgId] = useState(2);
+  const [msgId, setMsgId] = useState(messages.length + 1);
 
   const sendMessage = () => {
     if (!input.trim()) return;
-    const userMsg = { id: String(msgId), role: 'user', content: input };
+    const userMsg = { 
+      id: String(msgId), 
+      role: 'user' as const, 
+      content: input,
+      timestamp: new Date().toLocaleString()
+    };
     setMsgId(prev => prev + 1);
     setMessages(prev => [...prev, userMsg]);
     const currentInput = input;
     setInput('');
     setTimeout(() => {
-      setMessages(prev => [...prev, { id: String(msgId + 1), role: 'assistant', content: '明白，让我帮你梳理一下思路...' }]);
+      const responses = [
+        '好的，我来分析一下这个任务的下一步工作。',
+        '明白，我来帮你梳理一下思路。',
+        '收到，让我思考一下最佳方案。',
+        '好的，我开始执行这个任务。',
+      ];
+      const responseMsg = { 
+        id: String(msgId + 1), 
+        role: 'assistant' as const, 
+        content: responses[Math.floor(Math.random() * responses.length)],
+        timestamp: new Date().toLocaleString()
+      };
+      setMessages(prev => [...prev, responseMsg]);
     }, 1000);
   };
 
   return (
     <div className="h-full flex flex-col">
+      <div className="flex items-center p-3 border-b border-[#2a2a2a] bg-[#1a1a1a]">
+        <button onClick={onBack} className="text-[#71717a] hover:text-white mr-3">←</button>
+        <div>
+          <h3 className="text-white font-medium text-sm">{node.title}</h3>
+          <span className="text-xs text-[#71717a]">AI 对话</span>
+        </div>
+      </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.map(msg => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] p-3 rounded-lg text-sm ${
+            <div className={`max-w-[85%] p-3 rounded-lg text-sm ${
               msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-[#1a1a1a] text-[#d4d4d8]'
             }`}>
-              {msg.content}
+              <div className="whitespace-pre-wrap">{msg.content}</div>
+              <div className={`text-xs mt-1 ${msg.role === 'user' ? 'text-blue-200' : 'text-[#71717a]'}`}>
+                {msg.timestamp}
+              </div>
             </div>
           </div>
         ))}
@@ -210,7 +299,7 @@ function TaskAIChat() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-            placeholder="问AI..."
+            placeholder="与AI对话..."
             className="flex-1 bg-[#1a1a1a] text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <button onClick={sendMessage} className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm">
