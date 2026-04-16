@@ -2,13 +2,18 @@
 
 import { useState } from 'react';
 import { useTask } from '@/context/TaskContext';
-import { TaskNode } from '@/types';
+import { Task, TaskNode } from '@/types';
 import TaskFlowDiagram from './TaskFlowDiagram';
 
 type Tab = 'detail' | 'flow' | 'chat';
 
-export default function TaskDetail() {
+interface TaskDetailProps {
+  task?: Task;
+}
+
+export default function TaskDetail({ task: externalTask }: TaskDetailProps) {
   const { selectedTask, updateTaskStatus } = useTask();
+  const task = externalTask || selectedTask;
   const [activeTab, setActiveTab] = useState<Tab>('flow');
   const [selectedNode, setSelectedNode] = useState<TaskNode | null>(null);
 
