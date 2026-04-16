@@ -23,10 +23,10 @@ export default function TaskPage() {
       <div className="h-full flex flex-col">
         <header className="flex items-center p-4 border-b border-[#2a2a2a]">
           <button onClick={handleBack} className="text-white mr-3">←</button>
-          <h1 className="text-white font-medium">任务详情</h1>
+          <h1 className="text-white font-medium truncate flex-1">{selectedTask.title}</h1>
         </header>
-        <div className="flex-1 overflow-y-auto">
-          <TaskDetail />
+        <div className="flex-1 overflow-hidden">
+          <TaskDetail task={selectedTask} />
         </div>
       </div>
     );
