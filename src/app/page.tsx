@@ -9,13 +9,14 @@ type View = 'list' | 'detail';
 
 function TaskContent() {
   const { tasks } = useTask();
-  const [todos, setTodos] = useState<Task[]>(tasks);
-  const [activeTab, setActiveTab] = useState<'today' | 'projects' | 'tags' | 'profile'>('today');
-  const [selectedProject, setSelectedProject] = useState('全部');
+  const products = tasks.filter(t => t.level === 'product');
+  const [todos, setTodos] = useState<Task[]>(products);
+  const [activeTab, setActiveTab] = useState<'today' | 'products' | 'tags' | 'profile'>('today');
+  const [selectedProduct, setSelectedProduct] = useState('全部');
   const [currentView, setCurrentView] = useState<View>('list');
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
-  const projects = ['全部', 'CRM系统', 'AI助手', '学习', '生活'];
+  const productFilters = ['全部', 'CRM系统', 'AI助手', '学习', '生活'];
   const tags = ['功能', 'Bug', '性能', '设计', '文档'];
 
   const toggleTask = (taskId: string) => {
@@ -37,9 +38,9 @@ function TaskContent() {
     setSelectedTask(null);
   };
 
-  const filteredTasks = selectedProject === '全部' 
+  const filteredTasks = selectedProduct === '全部' 
     ? todos 
-    : todos.filter(t => t.tags.includes(selectedProject) || t.title.includes(selectedProject));
+    : todos.filter(t => t.tags.includes(selectedProduct) || t.title.includes(selectedProduct));
 
   const completedCount = todos.filter(t => t.status === 'completed').length;
 
@@ -122,16 +123,16 @@ function TaskContent() {
     </div>
   );
 
-  const renderProjects = () => (
+  const renderProducts = () => (
     <div className="flex-1 overflow-y-auto p-5">
       <h2 className="text-xl font-bold text-white mb-4">项目</h2>
       <div className="grid grid-cols-2 gap-3">
-        {projects.filter(p => p !== '全部').map(project => (
+        {productFilters.filter(p => p !== '全部').map(project => (
           <button
             key={project}
-            onClick={() => setSelectedProject(project)}
+            onClick={() => setSelectedProduct(project)}
             className={`p-4 rounded-2xl text-left transition-all ${
-              selectedProject === project
+              selectedProduct === project
                 ? 'bg-gradient-to-br from-blue-600 to-purple-700'
                 : 'bg-gray-800/50 hover:bg-gray-700'
             }`}
@@ -144,11 +145,11 @@ function TaskContent() {
         ))}
       </div>
 
-      {selectedProject !== '全部' && (
+      {selectedProduct !== '全部' && (
         <div className="mt-6">
-          <h3 className="text-sm font-medium text-gray-500 mb-3">{selectedProject} 的任务</h3>
+          <h3 className="text-sm font-medium text-gray-500 mb-3">{selectedProduct} 的任务</h3>
           <div className="space-y-3">
-            {todos.filter(t => t.title.includes(selectedProject)).map(task => (
+            {todos.filter(t => t.title.includes(selectedProduct)).map(task => (
               <div
                 key={task.id}
                 onClick={() => openTaskDetail(task)}
@@ -224,14 +225,14 @@ function TaskContent() {
   return (
     <div className="h-screen flex flex-col bg-[#0a0a0a]">
       {activeTab === 'today' && renderToday()}
-      {activeTab === 'projects' && renderProjects()}
+      {activeTab === 'products' && renderProducts()}
       {activeTab === 'tags' && renderTags()}
       {activeTab === 'profile' && renderProfile()}
 
       <nav className="flex border-t border-gray-800 bg-[#0a0a0a] pb-safe">
         {[
           { id: 'today', icon: '📋', label: '今日' },
-          { id: 'projects', icon: '📁', label: '项目' },
+          { id: 'products', icon: '📁', label: '产品' },
           { id: 'tags', icon: '🏷️', label: '标签' },
           { id: 'profile', icon: '👤', label: '我的' },
         ].map(tab => (
