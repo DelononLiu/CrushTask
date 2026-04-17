@@ -25,6 +25,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   const [msgId, setMsgId] = useState(1);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<AIMessage[]>(() => getInitialMessages(nodes, defaultNodeId));
+  const [activeTab, setActiveTab] = useState<'chat' | 'workspace'>('chat');
 
   const activeNode = useMemo(() => nodes.find(n => n.id === activeNodeId) || nodes[0], [nodes, activeNodeId]);
 
@@ -84,6 +85,85 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   const completedCount = nodes.filter(n => n.status === 'completed').length;
   const progressPercent = nodes.length > 0 ? (completedCount / nodes.length) * 100 : 0;
 
+  const renderWorkspace = () => (
+    <div className="flex-1 overflow-y-auto p-4">
+      <div className="bg-gray-800/50 rounded-2xl p-4 mb-4">
+        <h3 className="text-lg font-medium text-white mb-3">📁 工作区</h3>
+        <div className="space-y-2">
+          <div className="p-3 rounded-xl bg-gray-700/30 flex items-center gap-3 cursor-pointer hover:bg-gray-600/40">
+            <span className="text-2xl">📄</span>
+            <div className="flex-1">
+              <div className="text-gray-200">任务说明.txt</div>
+              <div className="text-xs text-gray-500">{task.description}</div>
+            </div>
+          </div>
+          <div className="p-3 rounded-xl bg-gray-700/30 flex items-center gap-3 cursor-pointer hover:bg-gray-600/40">
+            <span className="text-2xl">📝</span>
+            <div className="flex-1">
+              <div className="text-gray-200">设计笔记.md</div>
+              <div className="text-xs text-gray-500">{task.designNotes || '暂无笔记'}</div>
+            </div>
+          </div>
+          <div className="p-3 rounded-xl bg-gray-700/30 flex items-center gap-3 cursor-pointer hover:bg-gray-600/40">
+            <span className="text-2xl">⚛️</span>
+            <div className="flex-1">
+              <div className="text-gray-200">技术栈</div>
+              <div className="text-xs text-gray-500">{task.techStack?.join(', ') || '未指定'}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="bg-gray-800/50 rounded-2xl p-4">
+        <h3 className="text-lg font-medium text-white mb-3">🔧 可执行操作</h3>
+        <div className="grid grid-cols-2 gap-2">
+          <button className="p-3 rounded-xl bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 text-left">
+            <span className="block text-lg mb-1">📝</span>
+            <span className="text-sm">生成代码</span>
+          </button>
+          <button className="p-3 rounded-xl bg-green-600/20 text-green-400 hover:bg-green-600/30 text-left">
+            <span className="block text-lg mb-1">🔍</span>
+            <span className="text-sm">分析需求</span>
+          </button>
+          <button className="p-3 rounded-xl bg-purple-600/20 text-purple-400 hover:bg-purple-600/30 text-left">
+            <span className="block text-lg mb-1">📋</span>
+            <span className="text-sm">生成文档</span>
+          </button>
+          <button className="p-3 rounded-xl bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600/30 text-left">
+            <span className="block text-lg mb-1">🚀</span>
+            <span className="text-sm">部署测试</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderChat = () => (
+    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {messages.map(msg => (
+        <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+          <div className={`max-w-[85%] p-4 rounded-2xl text-sm ${
+            msg.role === 'user' 
+              ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-sm' 
+              : 'bg-gray-800 text-gray-200 rounded-bl-sm border border-gray-700'
+          }`}>
+            {msg.role === 'assistant' && (
+              <div className="flex items-center gap-2 mb-2 text-blue-400 text-xs">
+                <span className="text-lg">🤖</span>
+                <span>AI助手</span>
+              </div>
+            )}
+            <div className="whitespace-pre-wrap leading-relaxed">{msg.content}</div>
+            <div className={`text-xs mt-2 ${msg.role === 'user' ? 'text-blue-200' : 'text-gray-500'}`}>
+              {msg.timestamp}
+            </div>
+          </div>
+        </div>
+      ))}
+      <div ref={messagesEndRef} />
+    </div>
+  );
+
   return (
     <div className="h-full flex flex-col bg-[#0a0a0a]">
       {/* 头部：任务信息 */}
@@ -99,7 +179,6 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         </div>
         <h2 className="text-lg font-semibold text-white">{task.title}</h2>
         
-        {/* 进度条 */}
         {nodes.length > 0 && (
           <div className="mt-3">
             <div className="flex justify-between text-xs text-gray-500 mb-1">
@@ -144,50 +223,54 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         })}
       </div>
 
-      {/* AI对话区域 */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map(msg => (
-          <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] p-4 rounded-2xl text-sm ${
-              msg.role === 'user' 
-                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-br-sm' 
-                : 'bg-gray-800 text-gray-200 rounded-bl-sm border border-gray-700'
-            }`}>
-              {msg.role === 'assistant' && (
-                <div className="flex items-center gap-2 mb-2 text-blue-400 text-xs">
-                  <span className="text-lg">🤖</span>
-                  <span>AI助手</span>
-                </div>
-              )}
-              <div className="whitespace-pre-wrap leading-relaxed">{msg.content}</div>
-              <div className={`text-xs mt-2 ${msg.role === 'user' ? 'text-blue-200' : 'text-gray-500'}`}>
-                {msg.timestamp}
-              </div>
-            </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
+      {/* 对话/工作区切换 */}
+      <div className="flex border-b border-gray-800">
+        <button
+          onClick={() => setActiveTab('chat')}
+          className={`flex-1 py-3 text-sm font-medium transition-colors ${
+            activeTab === 'chat'
+              ? 'text-blue-500 border-b-2 border-blue-500'
+              : 'text-gray-500 hover:text-gray-300'
+          }`}
+        >
+          💬 AI对话
+        </button>
+        <button
+          onClick={() => setActiveTab('workspace')}
+          className={`flex-1 py-3 text-sm font-medium transition-colors ${
+            activeTab === 'workspace'
+              ? 'text-blue-500 border-b-2 border-blue-500'
+              : 'text-gray-500 hover:text-gray-300'
+          }`}
+        >
+          📁 工作区
+        </button>
       </div>
 
+      {/* 主内容区 */}
+      {activeTab === 'chat' ? renderChat() : renderWorkspace()}
+
       {/* 输入区域 */}
-      <div className="p-3 border-t border-gray-800 bg-gray-900">
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-            placeholder={`与AI讨论"${activeNode?.title}"...`}
-            className="flex-1 bg-gray-800 text-white px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-700"
-          />
-          <button 
-            onClick={sendMessage}
-            className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/30"
-          >
-            <span className="text-lg">➤</span>
-          </button>
+      {activeTab === 'chat' && (
+        <div className="p-3 border-t border-gray-800 bg-gray-900">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+              placeholder={`与AI讨论"${activeNode?.title}"...`}
+              className="flex-1 bg-gray-800 text-white px-4 py-3 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-700"
+            />
+            <button 
+              onClick={sendMessage}
+              className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/30"
+            >
+              <span className="text-lg">➤</span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
