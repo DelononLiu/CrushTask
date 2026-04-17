@@ -22,7 +22,7 @@ export interface Task {
   priority: 'low' | 'medium' | 'high';
   tags: string[];
   techStack: string[];
-  designNotes: string;
+  designNotes?: string;
   dueDate?: string;
   children: Task[];
   expanded?: boolean;
@@ -32,6 +32,121 @@ export interface Task {
 }
 
 export const initialTasks: Task[] = [
+  {
+    id: 'crush',
+    title: 'CrushTask',
+    description: 'AI驱动的任务管理系统，通过人机协作提升工作效率',
+    status: 'in_progress',
+    priority: 'high',
+    tags: ['产品', 'AI'],
+    techStack: ['Next.js', 'React', 'AI Agent'],
+    designNotes: '简洁现代风格，AI辅助完成任务',
+    expanded: true,
+    level: 'product',
+    nodes: [
+      { id: 'n1', title: '任务创建', status: 'completed', startTime: '2024-01-10', endTime: '2024-01-15', aiMessages: [
+        { id: 'm1', role: 'user', content: '实现任务创建功能', timestamp: '2024-01-10 09:00' },
+        { id: 'm2', role: 'assistant', content: '好的，我来帮你设计任务创建流程：\n\n1. 用户描述需求\n2. AI理解并拆解任务\n3. 自动生成任务节点\n4. 展示给用户确认', timestamp: '2024-01-10 09:01' }
+      ]},
+      { id: 'n2', title: 'AI对话', status: 'completed', startTime: '2024-01-16', endTime: '2024-01-25', aiMessages: [
+        { id: 'm3', role: 'user', content: '实现AI对话功能', timestamp: '2024-01-16 10:00' },
+        { id: 'm4', role: 'assistant', content: 'AI对话核心功能：\n\n1. 流式响应\n2. 代码高亮\n3. 文件操作\n4. 执行结果展示', timestamp: '2024-01-16 10:05' }
+      ]},
+      { id: 'n3', title: '任务节点图', status: 'in_progress', startTime: '2024-01-26', aiMessages: [
+        { id: 'm5', role: 'user', content: '实现蛇形节点图', timestamp: '2024-01-26 09:00' },
+        { id: 'm6', role: 'assistant', content: '节点图设计：\n\n1. 可视化任务进度\n2. 点击节点进入AI对话\n3. 状态自动更新\n4. 历史对话保留', timestamp: '2024-01-26 09:15' }
+      ]},
+      { id: 'n4', title: '产品结构', status: 'pending', aiMessages: [] },
+      { id: 'n5', title: '部署发布', status: 'pending', aiMessages: [] }
+    ],
+    currentNodeId: 'n3',
+    children: [
+      {
+        id: 'f1',
+        title: '任务TAB',
+        description: '显示当前进行中和待处理的任务',
+        status: 'completed',
+        priority: 'high',
+        tags: ['功能', '首页'],
+        techStack: ['React'],
+        designNotes: '任务TAB展示所有进行中的任务',
+        level: 'feature',
+        children: [
+          {
+            id: 't1',
+            title: '任务列表',
+            description: '展示任务列表',
+            status: 'completed',
+            priority: 'high',
+            tags: ['任务'],
+            techStack: ['React'],
+            designNotes: '列表展示',
+            level: 'task',
+            children: [],
+          },
+        ],
+      },
+      {
+        id: 'f2',
+        title: '产品TAB',
+        description: '产品功能层级展示',
+        status: 'completed',
+        priority: 'high',
+        tags: ['功能', '产品'],
+        techStack: ['React'],
+        designNotes: '产品-功能-任务层级',
+        level: 'feature',
+        children: [
+          {
+            id: 't2',
+            title: '层级展示',
+            description: '产品功能任务层级',
+            status: 'completed',
+            priority: 'high',
+            tags: ['任务'],
+            techStack: ['React'],
+            designNotes: '展开收起',
+            level: 'task',
+            children: [],
+          },
+        ],
+      },
+      {
+        id: 'f3',
+        title: '任务详情',
+        description: 'AI对话式任务详情',
+        status: 'in_progress',
+        priority: 'high',
+        tags: ['功能', '详情'],
+        techStack: ['React', 'AI'],
+        level: 'feature',
+        children: [
+          {
+            id: 't3',
+            title: '节点图',
+            description: '蛇形节点图展示',
+            status: 'in_progress',
+            priority: 'high',
+            tags: ['任务'],
+            techStack: ['SVG'],
+            level: 'task',
+            children: [],
+          },
+          {
+            id: 't4',
+            title: 'AI对话',
+            description: 'AI对话界面',
+            status: 'pending',
+            priority: 'medium',
+            tags: ['任务'],
+            techStack: ['React'],
+            level: 'task',
+            children: [],
+          },
+        ],
+      },
+    ],
+  },
   {
     id: 'p1',
     title: 'CRM客户管理系统',
