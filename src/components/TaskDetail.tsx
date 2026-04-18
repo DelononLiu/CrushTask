@@ -149,29 +149,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     }, 800);
   };
 
-  // 结果 (/result) - 显示最近或最新一次执行结果
-  const handleResult = () => {
-    const currentMsgId = msgId;
-    setMsgId(prev => prev + 1);
-    
-    setMessages(prev => [...prev, { 
-      id: String(currentMsgId), 
-      role: 'user', 
-      content: '/result', 
-      timestamp: new Date().toLocaleString() 
-    }]);
-    
-    setTimeout(() => {
-      setMessages(prev => [...prev, { 
-        id: String(currentMsgId + 1), 
-        role: 'assistant', 
-        content: '📊 执行结果\n\n最近一次执行：\n- 状态：成功\n- 耗时：1.2s\n- 输出：正常\n\n点击详情查看完整日志',
-        timestamp: new Date().toLocaleString() 
-      }]);
-    }, 500);
-  };
-
-  // 验收测试 - 执行测试，显示结果，并显示通过/驳回按钮
+  // 验收测试 - 执行任务，返回结果后显示通过/驳回按钮
   const handleAcceptanceTest = () => {
     const currentMsgId = msgId;
     const triggerId = String(currentMsgId + 2);
@@ -457,12 +435,6 @@ export default function TaskDetail({ task }: TaskDetailProps) {
             >
               ▶ 执行 (/run)
             </button>
-            <button 
-              onClick={handleResult}
-              className="px-2 py-1 bg-gray-700 text-white rounded text-xs font-medium hover:bg-gray-600"
-            >
-              📊 结果 (/result)
-            </button>
           </div>
           <button 
             onClick={toggleMaximize}
@@ -476,7 +448,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         {/* 底部输入框 */}
         <div className="p-2 border-t border-gray-800">
           <div className="flex gap-2 items-center">
-            <div className="text-xs text-gray-500 whitespace-nowrap">支持: /run /result</div>
+            <div className="text-xs text-gray-500 whitespace-nowrap">支持: /run</div>
             <input
               type="text"
               value={input}
