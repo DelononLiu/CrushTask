@@ -490,12 +490,12 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         {/* 上半部分：标签页区域 */}
         <div className={`${isConsoleOpen ? 'h-[30%]' : 'flex-1'} overflow-hidden flex flex-col border-b border-gray-800`}>
           {/* 标签栏 */}
-          <div className="flex border-b border-gray-800 bg-gray-900/50 flex-shrink-0">
+          <div className="flex gap-4 px-4 border-b border-gray-800 bg-gray-900/50 flex-shrink-0">
             {tabs.map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                className={`py-3 text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === tab.id
                     ? 'text-blue-500 border-b-2 border-blue-500'
                     : 'text-gray-500 hover:text-gray-300'
