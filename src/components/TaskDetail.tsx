@@ -333,10 +333,10 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   // 任务控制台
   const renderConsole = () => (
     <div className="flex flex-col h-full">
-      {/* 上部分70%：内容展示区 */}
-      <div className="h-[70%] overflow-hidden flex flex-col">
+      {/* 内容展示区 */}
+      <div className="flex-1 overflow-hidden flex flex-col">
         {/* 快捷工具栏 */}
-        <div className="flex gap-2 p-3 border-b border-gray-800 bg-gray-900/50">
+        <div className="flex gap-2 p-3 border-b border-gray-800 bg-gray-900/50 flex-shrink-0">
           <button 
             onClick={handleRun}
             className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
@@ -358,7 +358,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         
         {/* 验收操作区 - 仅在执行完成后显示 */}
         {isExecuted && (
-          <div className="px-3 py-2 border-b border-gray-800 bg-gray-900/30">
+          <div className="px-3 py-2 border-b border-gray-800 bg-gray-900/30 flex-shrink-0">
             <div className="flex gap-2">
               <button className="flex-1 py-2 bg-green-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-green-700">
                 <span>✅</span> 通过
@@ -373,30 +373,28 @@ export default function TaskDetail({ task }: TaskDetailProps) {
           </div>
         )}
         
-        {/* 内容展示区 */}
+        {/* 内容区 */}
         {renderConsoleContent()}
       </div>
       
-      {/* 下部分30%：固定输入框 */}
-      <div className="h-[30%] border-t border-gray-800 p-3">
-        <div className="flex flex-col h-full gap-2">
-          <div className="text-xs text-gray-500">支持命令: /run 执行任务, /result 查看结果</div>
-          <div className="flex-1 flex gap-2">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-              placeholder="输入指令或消息..."
-              className="flex-1 bg-gray-800 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-            <button 
-              onClick={sendMessage}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm"
-            >
-              发送
-            </button>
-          </div>
+      {/* 下部分：固定输入框 */}
+      <div className="border-t border-gray-800 p-3">
+        <div className="flex gap-2 items-center">
+          <div className="text-xs text-gray-500 whitespace-nowrap">支持: /run /result</div>
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+            placeholder="输入指令或消息..."
+            className="flex-1 bg-gray-800 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+          <button 
+            onClick={sendMessage}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm"
+          >
+            发送
+          </button>
         </div>
       </div>
     </div>
