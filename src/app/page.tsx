@@ -106,10 +106,10 @@ export default function Home() {
 
   return (
     <div className="h-screen flex bg-[#0a0a0a] relative overflow-hidden">
-      {/* Mobile menu toggle button */}
+      {/* Mobile menu toggle button - hide on desktop */}
       <button 
         onClick={toggleSidebar}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800 rounded-lg text-white hover:bg-gray-700"
+        className="lg:hidden fixed top-3 left-3 z-50 p-2 bg-gray-800 rounded-lg text-white hover:bg-gray-700"
       >
         {sidebarOpen ? '✕' : '☰'}
       </button>
@@ -135,8 +135,8 @@ export default function Home() {
         />
       </div>
 
-      {/* Main content area */}
-      <div className="flex-1 h-full overflow-hidden lg:block flex flex-col">
+      {/* Main content area - add left margin on mobile for menu button */}
+      <div className="flex-1 h-full overflow-hidden lg:block flex flex-col lg:ml-0 ml-12">
         <TaskDetail 
           key={selectedTask.id}
           task={selectedTask}
