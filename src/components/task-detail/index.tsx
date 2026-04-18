@@ -21,10 +21,12 @@ export default function TaskDetail({ task, viewMode, onBack, onSelectTask, paren
   const [acceptanceTriggerId, setAcceptanceTriggerId] = useState<string | null>(null);
   const [showAcceptanceModal, setShowAcceptanceModal] = useState(false);
   const [messages, setMessages] = useState<AIMessage[]>(() => [
-    { id: 'init', role: 'assistant', content: `你好！我是AI助手，现在是"${task.title}"任务。有什么可以帮你的？`, timestamp: new Date().toLocaleString() }
+    { id: 'init', role: 'assistant', content: `你好！我是AI助手，现在是"${task.title}"任务。有什么可以帮你的？`, timestamp: '初始化' }
   ]);
   const [input, setInput] = useState('');
   const [msgId, setMsgId] = useState(1);
+
+  const getTimestamp = () => new Date().toLocaleString('zh-CN', { hour12: false });
 
   const toggleCheck = (index: number) => {
     setCheckedItems(prev => ({ ...prev, [index]: !prev[index] }));
@@ -36,13 +38,13 @@ export default function TaskDetail({ task, viewMode, onBack, onSelectTask, paren
   const sendMessage = () => {
     if (!input.trim()) return;
     const isCommand = input.startsWith('/');
-    const userMsg: AIMessage = { id: String(msgId), role: 'user', content: input, timestamp: new Date().toLocaleString() };
+    const userMsg: AIMessage = { id: String(msgId), role: 'user', content: input, timestamp: getTimestamp() };
     setMsgId(prev => prev + 1);
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setTimeout(() => {
       const responses = ['好的，我来帮你分析这个任务。', '明白，让我思考一下最佳方案。', '收到，我开始执行。', isCommand ? '命令已接收，正在处理...' : '好的，我来帮你分析这个任务。'];
-      const responseMsg: AIMessage = { id: String(msgId), role: 'assistant', content: responses[Math.floor(Math.random() * responses.length)], timestamp: new Date().toLocaleString() };
+      const responseMsg: AIMessage = { id: String(msgId), role: 'assistant', content: responses[Math.floor(Math.random() * responses.length)], timestamp: getTimestamp() };
       setMessages(prev => [...prev, responseMsg]);
       setMsgId(prev => prev + 1);
     }, 800);
