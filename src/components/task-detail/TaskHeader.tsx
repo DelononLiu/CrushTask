@@ -48,15 +48,15 @@ export default function TaskHeader({ task, viewMode, onBack, checkedItems, onTog
 
   return (
     <div className="p-2 lg:p-3 border-b border-gray-800 bg-gradient-to-r from-gray-900 to-gray-800">
-      {/* Top row: back + status + edit button */}
+      {/* Top row: status + edit + back */}
       <div className="flex items-center justify-between mb-1">
-        <button onClick={onBack} className="text-gray-400 hover:text-white text-xs">← 返回</button>
         <div className="flex items-center gap-1.5">
           <span className={`px-1.5 py-0.5 text-[10px] font-medium border ${statusColors[task.status]}`}>{statusLabels[task.status]}</span>
           <span className="px-1.5 py-0.5 text-[10px] font-medium bg-gray-500/20 text-gray-400 border border-gray-500/50">{priorityLabels[task.priority]}</span>
           {onEdit && (
             <button onClick={onEdit} className="px-1.5 py-0.5 text-[10px] bg-gray-700 text-gray-300 hover:bg-gray-600">✏️ 编辑</button>
           )}
+          <button onClick={onBack} className="text-gray-400 hover:text-white text-xs ml-1">← 返回</button>
         </div>
       </div>
       
