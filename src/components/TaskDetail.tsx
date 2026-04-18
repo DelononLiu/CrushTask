@@ -57,7 +57,12 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   const [input, setInput] = useState('');
   const [msgId, setMsgId] = useState(1);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useState<'body' | 'context' | 'acceptance'>('body');
+  
+  // 标签状态：任务说明书 / 任务控制台
+  const [activeMainTab, setActiveMainTab] = useState<'manual' | 'console'>('manual');
+  
+  // 任务说明书子Tab
+  const [manualSubTab, setManualSubTab] = useState<'body' | 'context'>('body');
   const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({});
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({
     goal: true,
@@ -65,8 +70,15 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     constraints: true,
     acceptance: true,
   });
+  
+  // AI消息和执行日志
   const [messages, setMessages] = useState<AIMessage[]>([
     { id: 'init', role: 'assistant', content: `你好！我是AI助手，现在是"${task.title}"任务。有什么可以帮你的？`, timestamp: new Date().toLocaleString() }
+  ]);
+  
+  // 执行日志
+  const [executionLogs, setExecutionLogs] = useState<string[]>([
+    '[系统] 任务初始化完成',
   ]);
 
   useEffect(() => {
@@ -79,6 +91,8 @@ export default function TaskDetail({ task }: TaskDetailProps) {
 
   const sendMessage = () => {
     if (!input.trim()) return;
+    
+    const isCommand = input.startsWith('/');
     const userMsg: AIMessage = { 
       id: String(msgId), 
       role: 'user', 
@@ -87,6 +101,22 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     };
     setMsgId(prev => prev + 1);
     setMessages(prev => [...prev, userMsg]);
+    
+    // 处理命令
+    if (isCommand) {
+      if (input === '/run') {
+        setExecutionLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 开始执行任务...`, `[${new Date().toLocaleTimeString()}] 正在解析任务结构...`]);
+        setTimeout(() => {
+          setExecutionLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 代码生成完成`, `[${new Date().toLocaleTimeString()}] 构建成功`, `[${new Date().toLocaleTimeString()}] 执行完成`]);
+        }, 1500);
+      } else if (input === '/result') {
+        setExecutionLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 正在生成执行结果...`]);
+        setTimeout(() => {
+          setExecutionLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 结果已生成`]);
+        }, 1000);
+      }
+    }
+    
     setInput('');
     
     setTimeout(() => {
@@ -94,6 +124,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         '好的，我来帮你分析这个任务。',
         '明白，让我思考一下最佳方案。',
         '收到，我开始执行。',
+        isCommand ? '命令已接收，正在处理...' : '好的，我来帮你分析这个任务。',
       ];
       const responseMsg: AIMessage = { 
         id: String(msgId), 
@@ -114,6 +145,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   const totalCount = task.acceptanceCriteria?.length || 0;
   const constraintsList = task.constraints ? task.constraints.split('\n').filter(c => c.trim()) : [];
 
+  // 任务说明书 - 任务本体
   const renderTaskBody = () => (
     <div className="divide-y divide-gray-800">
       <CollapsibleModule
@@ -121,13 +153,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         expanded={expandedModules.goal}
         onToggle={() => toggleModule('goal')}
       >
-        <textarea
-          className="w-full bg-gray-800/50 text-gray-200 text-sm p-2 rounded resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
-          rows={3}
-          value={task.goal || ''}
-          placeholder="输入任务目标..."
-          readOnly
-        />
+        <div className="text-gray-200 text-sm whitespace-pre-wrap">{task.goal || '暂无'}</div>
       </CollapsibleModule>
 
       <CollapsibleModule
@@ -138,23 +164,11 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         <div className="space-y-3">
           <div>
             <div className="text-xs text-gray-500 mb-1">输入</div>
-            <textarea
-              className="w-full bg-gray-800/50 text-gray-200 text-sm p-2 rounded resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
-              rows={2}
-              value={task.input || ''}
-              placeholder="输入..."
-              readOnly
-            />
+            <div className="text-gray-200 text-sm whitespace-pre-wrap">{task.input || '暂无'}</div>
           </div>
           <div>
             <div className="text-xs text-gray-500 mb-1">输出</div>
-            <textarea
-              className="w-full bg-gray-800/50 text-gray-200 text-sm p-2 rounded resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
-              rows={2}
-              value={task.output || ''}
-              placeholder="输出..."
-              readOnly
-            />
+            <div className="text-gray-200 text-sm whitespace-pre-wrap">{task.output || '暂无'}</div>
           </div>
         </div>
       </CollapsibleModule>
@@ -206,6 +220,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     </div>
   );
 
+  // 任务说明书 - 上下文
   const renderContext = () => (
     <div className="space-y-4 p-4">
       <div>
@@ -241,6 +256,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     </div>
   );
 
+  // 任务说明书 - 验收
   const renderAcceptance = () => (
     <div className="space-y-4 p-4">
       <h3 className="text-xs font-medium text-gray-500">验收清单（自动同步）</h3>
@@ -278,9 +294,62 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     </div>
   );
 
-  const renderAIChat = () => (
+  // 任务说明书
+  const renderManual = () => (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto space-y-3 p-4">
+      {/* 任务说明书子Tab */}
+      <div className="flex border-b border-gray-800">
+        {[
+          { id: 'body', label: '任务本体' },
+          { id: 'context', label: '上下文' },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setManualSubTab(tab.id as typeof manualSubTab)}
+            className={`flex-1 py-2 text-sm font-medium transition-colors ${
+              manualSubTab === tab.id
+                ? 'text-blue-500 border-b-2 border-blue-500'
+                : 'text-gray-500 hover:text-gray-300'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+      
+      {/* 任务本体内容 */}
+      <div className="flex-1 overflow-y-auto">
+        {manualSubTab === 'body' && (
+          <>
+            {renderTaskBody()}
+            <div className="border-t border-gray-800">
+              <div className="p-4">
+                <h3 className="text-xs font-medium text-gray-500 mb-2">验收</h3>
+                {renderAcceptance()}
+              </div>
+            </div>
+          </>
+        )}
+        {manualSubTab === 'context' && renderContext()}
+      </div>
+    </div>
+  );
+
+  // 任务控制台 - 内容区
+  const renderConsoleContent = () => (
+    <div className="flex-1 overflow-y-auto space-y-4 p-4">
+      {/* 执行日志 */}
+      <div className="bg-gray-900 rounded-lg p-3">
+        <div className="text-xs font-medium text-gray-400 mb-2">执行日志</div>
+        <div className="font-mono text-xs text-green-400 space-y-1">
+          {executionLogs.map((log, i) => (
+            <div key={i}>{log}</div>
+          ))}
+        </div>
+      </div>
+      
+      {/* 对话历史 */}
+      <div className="space-y-3">
         {messages.map(msg => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[85%] p-3 rounded-xl text-sm ${
@@ -302,22 +371,37 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         ))}
         <div ref={messagesEndRef} />
       </div>
-      <div className="p-3 border-t border-gray-800">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-            placeholder="与AI对话..."
-            className="flex-1 bg-gray-800 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-          <button 
-            onClick={sendMessage}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm"
-          >
-            发送
-          </button>
+    </div>
+  );
+
+  // 任务控制台
+  const renderConsole = () => (
+    <div className="flex flex-col h-full">
+      {/* 上部分70%：内容展示区 */}
+      <div className="h-[70%] overflow-hidden flex flex-col">
+        {renderConsoleContent()}
+      </div>
+      
+      {/* 下部分30%：固定输入框 */}
+      <div className="h-[30%] border-t border-gray-800 p-3">
+        <div className="flex flex-col h-full gap-2">
+          <div className="text-xs text-gray-500">支持命令: /run 执行任务, /result 查看结果</div>
+          <div className="flex-1 flex gap-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+              placeholder="输入指令或消息..."
+              className="flex-1 bg-gray-800 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+            <button 
+              onClick={sendMessage}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm"
+            >
+              发送
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -341,45 +425,30 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         </div>
       </div>
 
-      {/* 上部分70%：三个Tab */}
-      <div className="h-[70%] flex flex-col">
-        {/* 三个核心Tab */}
-        <div className="flex border-b border-gray-800">
-          {[
-            { id: 'body', label: '任务本体' },
-            { id: 'context', label: '上下文' },
-            { id: 'acceptance', label: '验收' },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={`flex-1 py-3 text-sm font-medium transition-colors ${
-                activeTab === tab.id
-                  ? 'text-blue-500 border-b-2 border-blue-500'
-                  : 'text-gray-500 hover:text-gray-300'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Tab内容区 */}
-        <div className="flex-1 overflow-y-auto">
-          {activeTab === 'body' && renderTaskBody()}
-          {activeTab === 'context' && renderContext()}
-          {activeTab === 'acceptance' && renderAcceptance()}
-        </div>
+      {/* 主标签切换 */}
+      <div className="flex border-b border-gray-800">
+        {[
+          { id: 'manual', label: '任务说明书' },
+          { id: 'console', label: '任务控制台' },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveMainTab(tab.id as typeof activeMainTab)}
+            className={`flex-1 py-3 text-sm font-medium transition-colors ${
+              activeMainTab === tab.id
+                ? 'text-blue-500 border-b-2 border-blue-500'
+                : 'text-gray-500 hover:text-gray-300'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* 下部分30%：AI对话区 */}
-      <div className="h-[30%] border-t border-gray-800">
-        <div className="h-full flex flex-col">
-          <div className="px-3 py-2 border-b border-gray-800">
-            <span className="text-xs font-medium text-gray-400">AI对话</span>
-          </div>
-          {renderAIChat()}
-        </div>
+      {/* 主内容区 */}
+      <div className="flex-1 overflow-hidden">
+        {activeMainTab === 'manual' && renderManual()}
+        {activeMainTab === 'console' && renderConsole()}
       </div>
     </div>
   );
