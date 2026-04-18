@@ -21,6 +21,10 @@
 - [x] 详情页去除圆角：Chat消息、按钮、输入框等移除rounded样式
 - [x] 修复sidebar间距：sidebar使用top-12 bottom-0紧贴header底部
 - [x] 简化sidebar布局：desktop使用flex h-full，mobile使用drawer覆盖层
+- [x] 支持双击卡片进入详情
+- [x] 详情Header单行布局：标题在左，状态/优先级/编辑/返回在右
+- [x] 增加输入框高度
+- [x] 更新示例数据：原子任务标题改为动词开头（如"实现左侧产品树"）
 
 ## Current Structure
 

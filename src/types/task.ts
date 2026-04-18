@@ -80,7 +80,7 @@ export const initialTasks: Task[] = [
         children: [
           {
             id: 'task-sidebar',
-            title: '左侧产品树',
+            title: '实现左侧产品树',
             module: 'CrushTask',
             subFeature: '用户界面',
             status: 'completed',
@@ -97,21 +97,21 @@ export const initialTasks: Task[] = [
             },
             aiMessages: [],
             nodeType: 'task',
-            fullPath: 'CrushTask → 用户界面 → 左侧产品树',
+            fullPath: 'CrushTask → 用户界面 → 实现左侧产品树',
             children: []
           },
           {
             id: 'task-list-view',
-            title: '任务列表视图',
+            title: '实现任务列表视图',
             module: 'CrushTask',
             subFeature: '用户界面',
-            status: 'in_progress',
+            status: 'completed',
             priority: 'high',
             goal: '展示分组任务卡片，按状态分类',
             input: '子任务数据',
             output: '分组卡片列表',
             constraints: '按正在进行/计划/完成分组',
-            acceptanceCriteria: ['分组显示正确', '卡片展示关键信息', '支持点击跳转详情'],
+            acceptanceCriteria: ['分组显示正确', '卡片展示关键信息', '支持双击跳转详情'],
             context: {
               project: 'CrushTask',
               techStack: ['React', 'TypeScript'],
@@ -119,12 +119,12 @@ export const initialTasks: Task[] = [
             },
             aiMessages: [],
             nodeType: 'task',
-            fullPath: 'CrushTask → 用户界面 → 任务列表视图',
+            fullPath: 'CrushTask → 用户界面 → 实现任务列表视图',
             children: []
           },
           {
             id: 'task-detail-view',
-            title: '任务详情视图',
+            title: '实现任务详情视图',
             module: 'CrushTask',
             subFeature: '用户界面',
             status: 'in_progress',
@@ -132,21 +132,21 @@ export const initialTasks: Task[] = [
             goal: '上下布局：任务信息 + AI对话',
             input: '选中任务数据',
             output: '任务详情 + AI对话框',
-            constraints: '30%任务信息 + 70%AI对话',
-            acceptanceCriteria: ['任务信息完整显示', 'AI对话功能可用', '验收通过/驳回功能'],
+            constraints: '单行Header + AI对话',
+            acceptanceCriteria: ['Header显示状态/优先级/编辑/返回', 'AI对话功能可用', '验收通过/驳回功能'],
             context: {
               project: 'CrushTask',
               techStack: ['React', 'TypeScript'],
-              relatedFiles: ['src/components/task-detail/index.tsx', 'src/components/task-detail/Chat.tsx']
+              relatedFiles: ['src/components/task-detail/index.tsx', 'src/components/task-detail/Chat.tsx', 'src/components/task-detail/TaskHeader.tsx']
             },
             aiMessages: [],
             nodeType: 'task',
-            fullPath: 'CrushTask → 用户界面 → 任务详情视图',
+            fullPath: 'CrushTask → 用户界面 → 实现任务详情视图',
             children: []
           },
           {
             id: 'task-responsive',
-            title: '响应式布局',
+            title: '实现响应式布局',
             module: 'CrushTask',
             subFeature: '用户界面',
             status: 'completed',
@@ -154,7 +154,7 @@ export const initialTasks: Task[] = [
             goal: '适配PC和移动端',
             input: '屏幕尺寸',
             output: '自适应布局',
-            constraints: '移动端抽屉式侧边栏',
+            constraints: '移动端抽屉式侧边栏，全局Header',
             acceptanceCriteria: ['PC端正常显示', '移动端可交互', '不断行不重叠'],
             context: {
               project: 'CrushTask',
@@ -163,7 +163,7 @@ export const initialTasks: Task[] = [
             },
             aiMessages: [],
             nodeType: 'task',
-            fullPath: 'CrushTask → 用户界面 → 响应式布局',
+            fullPath: 'CrushTask → 用户界面 → 实现响应式布局',
             children: []
           }
         ]
@@ -173,7 +173,7 @@ export const initialTasks: Task[] = [
         title: 'AI交互',
         module: 'CrushTask',
         subFeature: 'AI交互',
-        status: 'pending',
+        status: 'in_progress',
         priority: 'high',
         goal: '实现AI任务执行能力',
         input: '',
@@ -187,10 +187,10 @@ export const initialTasks: Task[] = [
         children: [
           {
             id: 'task-ai-chat',
-            title: 'AI对话功能',
+            title: '实现AI对话功能',
             module: 'CrushTask',
             subFeature: 'AI交互',
-            status: 'pending',
+            status: 'completed',
             priority: 'high',
             goal: '实现与AI助手的对话交互',
             input: '用户消息',
@@ -204,15 +204,15 @@ export const initialTasks: Task[] = [
             },
             aiMessages: [],
             nodeType: 'task',
-            fullPath: 'CrushTask → AI交互 → AI对话功能',
+            fullPath: 'CrushTask → AI交互 → 实现AI对话功能',
             children: []
           },
           {
             id: 'task-acceptance',
-            title: '验收测试',
+            title: '实现验收测试',
             module: 'CrushTask',
             subFeature: 'AI交互',
-            status: 'pending',
+            status: 'completed',
             priority: 'high',
             goal: 'AI自动执行验收测试并反馈结果',
             input: '验收标准、任务目标',
@@ -226,12 +226,12 @@ export const initialTasks: Task[] = [
             },
             aiMessages: [],
             nodeType: 'task',
-            fullPath: 'CrushTask → AI交互 → 验收测试',
+            fullPath: 'CrushTask → AI交互 → 实现验收测试',
             children: []
           },
           {
             id: 'task-ai-exec',
-            title: 'AI执行引擎',
+            title: '实现AI执行引擎',
             module: 'CrushTask',
             subFeature: 'AI交互',
             status: 'pending',
@@ -247,7 +247,7 @@ export const initialTasks: Task[] = [
             },
             aiMessages: [],
             nodeType: 'task',
-            fullPath: 'CrushTask → AI交互 → AI执行引擎',
+            fullPath: 'CrushTask → AI交互 → 实现AI执行引擎',
             children: []
           }
         ]
@@ -271,7 +271,7 @@ export const initialTasks: Task[] = [
         children: [
           {
             id: 'task-localstorage',
-            title: '本地存储',
+            title: '实现本地存储',
             module: 'CrushTask',
             subFeature: '数据存储',
             status: 'pending',
@@ -287,7 +287,7 @@ export const initialTasks: Task[] = [
             },
             aiMessages: [],
             nodeType: 'task',
-            fullPath: 'CrushTask → 数据存储 → 本地存储',
+            fullPath: 'CrushTask → 数据存储 → 实现本地存储',
             children: []
           }
         ]
