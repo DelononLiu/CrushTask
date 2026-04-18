@@ -19,16 +19,14 @@ function findTaskById(tasks: Task[], id: string): Task | null {
 
 function findFirstTask(tasks: Task[]): Task | null {
   for (const task of tasks) {
-    if (task.children && task.children.length > 0) {
-      for (const child of task.children) {
-        if (child.children && child.children.length > 0) {
-          for (const grandchild of child.children) {
-            return grandchild;
-          }
-          return child;
-        }
-      }
+    // If this is a leaf task (nodeType='task' and no children), return it
+    if (task.nodeType === 'task' && (!task.children || task.children.length === 0)) {
       return task;
+    }
+    // Otherwise, search in children
+    if (task.children && task.children.length > 0) {
+      const found = findFirstTask(task.children);
+      if (found) return found;
     }
   }
   return tasks[0] || null;
