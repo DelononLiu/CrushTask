@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Task } from '@/types/task';
 import { initialTasks } from '@/types/task';
 import TaskTree from '@/components/TaskTree';
