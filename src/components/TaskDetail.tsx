@@ -91,6 +91,9 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   // 任务执行状态
   const [isExecuted, setIsExecuted] = useState(false);
   
+  // 验收弹窗状态
+  const [showAcceptanceModal, setShowAcceptanceModal] = useState(false);
+  
   // AI消息和执行日志
   const [messages, setMessages] = useState<AIMessage[]>([
     { id: 'init', role: 'assistant', content: `你好！我是AI助手，现在是"${task.title}"任务。有什么可以帮你的？`, timestamp: new Date().toLocaleString() }
@@ -437,10 +440,16 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         {isExecuted && (
           <div className="px-3 py-2 border-t border-gray-800 bg-gray-900/30">
             <div className="flex gap-2">
-              <button className="flex-1 py-1.5 bg-green-600 text-white rounded text-sm font-medium flex items-center justify-center gap-1 hover:bg-green-700">
+              <button 
+                onClick={() => setShowAcceptanceModal(true)}
+                className="flex-1 py-1.5 bg-green-600 text-white rounded text-sm font-medium flex items-center justify-center gap-1 hover:bg-green-700"
+              >
                 <span>✅</span> 通过
               </button>
-              <button className="flex-1 py-1.5 bg-red-600 text-white rounded text-sm font-medium flex items-center justify-center gap-1 hover:bg-red-700">
+              <button 
+                onClick={() => setShowAcceptanceModal(true)}
+                className="flex-1 py-1.5 bg-red-600 text-white rounded text-sm font-medium flex items-center justify-center gap-1 hover:bg-red-700"
+              >
                 <span>❌</span> 驳回
               </button>
             </div>
@@ -485,6 +494,44 @@ export default function TaskDetail({ task }: TaskDetailProps) {
           </div>
         )}
       </div>
+
+      {/* 验收弹窗 */}
+      {showAcceptanceModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-900 rounded-lg w-[400px] border border-gray-700 shadow-xl">
+            <div className="p-4 border-b border-gray-700">
+              <h3 className="text-lg font-medium text-white">任务验收</h3>
+            </div>
+            <div className="p-4">
+              <div className="mb-4">
+                <label className="text-sm text-gray-400 mb-2 block">验收意见</label>
+                <textarea 
+                  className="w-full bg-gray-800 text-white px-3 py-2 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  rows={4}
+                  placeholder="请输入验收意见..."
+                />
+              </div>
+              <div className="text-sm text-gray-500 mb-4">
+                验收进度: {completedCount}/{totalCount} 已完成
+              </div>
+            </div>
+            <div className="p-4 border-t border-gray-700 flex gap-3">
+              <button 
+                onClick={() => setShowAcceptanceModal(false)}
+                className="flex-1 py-2 bg-green-600 text-white rounded font-medium hover:bg-green-700"
+              >
+                ✅ 通过
+              </button>
+              <button 
+                onClick={() => setShowAcceptanceModal(false)}
+                className="flex-1 py-2 bg-red-600 text-white rounded font-medium hover:bg-red-700"
+              >
+                ❌ 驳回
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
