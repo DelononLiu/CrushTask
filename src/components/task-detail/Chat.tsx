@@ -65,9 +65,9 @@ export default function Chat({
             onChange={(e) => onInputChange(e.target.value)} 
             onKeyDown={(e) => e.key === 'Enter' && onSend()} 
             placeholder="输入..." 
-            className="flex-1 bg-gray-800 text-white px-2 lg:px-3 py-1 lg:py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" 
+            className="flex-1 bg-gray-800 text-white px-2 lg:px-3 py-2 lg:py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" 
           />
-          <button onClick={onSend} className="px-2 lg:px-3 py-1 lg:py-1.5 bg-blue-600 text-white text-xs lg:text-sm">发送</button>
+          <button onClick={onSend} className="px-2 lg:px-3 py-2 lg:py-2 bg-blue-600 text-white text-xs lg:text-sm">发送</button>
         </div>
       </div>
     </div>
