@@ -106,23 +106,23 @@ export default function Home() {
   return (
     <div className="h-screen flex flex-col bg-[#0a0a0a] overflow-hidden">
       {/* Global Header */}
-      <header className="h-12 flex-shrink-0 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-4 z-50">
+      <header className="h-12 flex-shrink-0 bg-gray-900 border-b border-gray-800 flex items-center px-2 z-50">
         {/* Left: Menu button */}
         <button 
           onClick={toggleSidebar}
-          className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg"
+          className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 text-lg"
         >
           {sidebarOpen ? '✕' : '☰'}
         </button>
         
         {/* Center: App title */}
-        <div className="flex items-center gap-2">
+        <div className="flex-1 flex justify-center items-center gap-2">
           <span className="text-lg">📦</span>
           <span className="text-base font-semibold text-white">CrushTask</span>
         </div>
         
         {/* Right: Placeholder for future actions */}
-        <div className="w-10" />
+        <div className="w-8" />
       </header>
 
       {/* Main area */}
