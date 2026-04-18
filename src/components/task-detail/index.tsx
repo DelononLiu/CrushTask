@@ -77,6 +77,11 @@ export default function TaskDetail({ task, viewMode, onBack, parentTasks = [] }:
     sendMessage();
   };
 
+  const handleEdit = () => {
+    // TODO: Open edit modal
+    alert('编辑功能开发中...');
+  };
+
   return (
     <div className="flex-1 h-full flex flex-col bg-[#0a0a0a]">
       <TaskHeader 
@@ -85,6 +90,7 @@ export default function TaskDetail({ task, viewMode, onBack, parentTasks = [] }:
         onBack={onBack} 
         checkedItems={checkedItems}
         onToggleCheck={toggleCheck}
+        onEdit={handleEdit}
       />
       
       {viewMode === 'list' ? (
