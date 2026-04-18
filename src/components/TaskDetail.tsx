@@ -46,16 +46,6 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   
   // 双状态交互模式：概览模式(默认) vs 操作模式
   const [isOperationMode, setIsOperationMode] = useState(false);
-  
-  // 跟踪前一个任务ID
-  const prevTaskIdRef = useRef(task.id);
-  
-  // 任务切换时重置到概览模式
-  if (task.id !== prevTaskIdRef.current) {
-    prevTaskIdRef.current = task.id;
-    setIsOperationMode(false);
-    setActiveFlowNode('spec');
-  }
 
   // 处理流程节点点击 - 切换到操作模式
   const handleFlowNodeClick = (node: FlowNode) => {
@@ -122,7 +112,6 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   };
 
   const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({});
-  const [isExecuted, setIsExecuted] = useState(false);
   const [acceptanceTriggerId, setAcceptanceTriggerId] = useState<string | null>(null);
   const [showAcceptanceModal, setShowAcceptanceModal] = useState(false);
 
@@ -137,18 +126,6 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === '`') {
-        e.preventDefault();
-        toggleConsole();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const toggleCheck = (index: number) => {
     setCheckedItems(prev => ({ ...prev, [index]: !prev[index] }));
@@ -416,70 +393,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
               </div>
             )}
           </div>
-          
-          {/* 打开控制台触发条 */}
-          {consoleState === 'closed' && (
-            <div className="p-2 border-t border-gray-800 bg-gray-900/80 cursor-pointer hover:bg-gray-800 transition-colors flex-shrink-0" onClick={toggleConsole}>
-              <div className="text-center text-sm text-gray-400 flex items-center justify-center gap-2">
-                <span>💻</span><span>打开任务控制台</span><span className="text-xs text-gray-500">(Ctrl+`)</span>
-              </div>
-            </div>
-          )}
         </div>
-        
-        {/* 下半部分：抽屉式任务控制台 */}
-        {isConsoleOpen && (
-          <div className={`${consoleState === 'maximized' ? 'flex-1' : 'h-[40%]'} overflow-hidden flex flex-col border-t border-gray-800`}>
-            <div className="flex flex-col h-full border-t border-gray-800 bg-[#0a0a0a]">
-              <div className="flex-1 overflow-hidden flex flex-col">
-                <div className="flex-1 overflow-y-auto space-y-4 p-4">
-                  <div className="bg-gray-900 rounded-lg p-3">
-                    <div className="text-xs font-medium text-gray-400 mb-2">执行日志</div>
-                    <div className="font-mono text-xs text-green-400 space-y-1">
-                      {executionLogs.map((log, i) => (<div key={i}>{log}</div>))}
-                    </div>
-                  </div>
-                  <div className="space-y-3">
-                    {messages.map(msg => (
-                      <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[85%] p-3 rounded-xl text-sm ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-200'}`}>
-                          {msg.role === 'assistant' && <div className="flex items-center gap-1 mb-1 text-blue-400 text-xs"><span>🤖</span> <span>AI助手</span></div>}
-                          <div>{msg.content}</div>
-                          <div className={`text-xs mt-1 ${msg.role === 'user' ? 'text-blue-200' : 'text-gray-500'} text-right`}>{msg.timestamp}</div>
-                          {msg.role === 'assistant' && acceptanceTriggerId && msg.id === acceptanceTriggerId && (
-                            <div className="flex gap-2 mt-2 pt-2 border-t border-gray-700">
-                              <button onClick={() => setShowAcceptanceModal(true)} className="flex-1 py-1 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700">✅ 通过</button>
-                              <button onClick={() => setShowAcceptanceModal(true)} className="flex-1 py-1 bg-red-600 text-white rounded text-xs font-medium hover:bg-red-700">❌ 驳回</button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                    <div ref={messagesEndRef} />
-                  </div>
-                </div>
-              </div>
-              <div className="flex-shrink-0">
-                <div className="flex items-center gap-2 p-2 border-t border-gray-800 bg-gray-900/50">
-                  <div className="flex gap-2 flex-1">
-                    <button onClick={handleAcceptanceTest} className="px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700">🧪 验收测试</button>
-                    <button onClick={handleRun} className="px-2 py-1 bg-gray-700 text-white rounded text-xs font-medium hover:bg-gray-600">▶ 执行 (/run)</button>
-                  </div>
-                  <button onClick={toggleMaximize} className="p-1 text-gray-400 hover:text-white hover:bg-gray-700 rounded text-xs" title={consoleState === 'maximized' ? '还原' : '最大化'}>
-                    {consoleState === 'maximized' ? '⬜' : '🗗'}
-                  </button>
-                </div>
-                <div className="p-2 border-t border-gray-800">
-                  <div className="flex gap-2 items-center">
-                    <div className="text-xs text-gray-500 whitespace-nowrap">支持: /run</div>
-                    <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && sendMessage()} placeholder="输入指令或消息..." className="flex-1 bg-gray-800 text-white px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                    <button onClick={sendMessage} className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm">发送</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* 验收弹窗 */}

@@ -69,7 +69,7 @@ export default function Home() {
         selectedTaskId={selectedTaskId || selectedTask.id}
         onSelectTask={handleSelectTask}
       />
-      <TaskDetail task={selectedTask} />
+      <TaskDetail key={selectedTask.id} task={selectedTask} />
     </div>
   );
 }
