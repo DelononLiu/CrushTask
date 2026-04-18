@@ -92,9 +92,9 @@ export default function TaskTree({ modules, selectedTaskId, onSelectTask }: Task
 
   return (
     <div className="w-64 h-full bg-gray-900 border-r border-gray-800 flex flex-col">
-      <div className="p-4 border-b border-gray-800">
-        <h2 className="text-lg font-semibold text-white">任务树</h2>
-        <p className="text-xs text-gray-500">产品功能结构</p>
+      <div className="p-3 lg:p-4 border-b border-gray-800">
+        <h2 className="text-base lg:text-lg font-semibold text-white">任务树</h2>
+        <p className="text-[10px] lg:text-xs text-gray-500">产品功能结构</p>
       </div>
       
       <div className="flex-1 overflow-y-auto py-2">

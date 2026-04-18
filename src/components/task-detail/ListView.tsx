@@ -53,19 +53,19 @@ export default function ListView({ task, parentTasks }: ListViewProps) {
   const groupOrder = ['in_progress', 'pending', 'completed'];
 
   return (
-    <div className="flex-1 overflow-y-auto p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-white">{task.title}</h2>
+    <div className="flex-1 overflow-y-auto p-3 lg:p-4">
+      <div className="flex items-center justify-between mb-3 lg:mb-4">
+        <h2 className="text-base lg:text-lg font-semibold text-white">{task.title}</h2>
       </div>
       {groupOrder.map(status => (
         groupedTasks[status].length > 0 && (
-          <div key={status} className="mb-6">
-            <div className="flex items-center gap-2 mb-3">
+          <div key={status} className="mb-4 lg:mb-6">
+            <div className="flex items-center gap-2 mb-2 lg:mb-3">
               <span className={`w-2 h-2 rounded-full ${getStatusDotColor(status)}`}></span>
               <span className="text-sm font-medium text-gray-300">{statusLabels[status]}</span>
               <span className="text-xs text-gray-500">({groupedTasks[status].length})</span>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 lg:gap-3">
               {groupedTasks[status].map(t => (
                 <div key={t.id} className="bg-gray-800/50 rounded-lg p-3 border border-gray-700 hover:border-blue-500 cursor-pointer transition-colors">
                   <div className="flex items-center gap-2 mb-2">

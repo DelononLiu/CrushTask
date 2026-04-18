@@ -85,18 +85,22 @@ export default function TaskDetail({ task, viewMode, onBack, parentTasks = [] }:
         <ListView task={task} parentTasks={parentTasks} />
       ) : (
         <div className="flex-1 flex flex-col overflow-hidden">
-          <div className="h-[30%] min-h-[150px] flex-shrink-0 border-b border-gray-800 overflow-y-auto">
+          {/* Task info - 30% on desktop, 40% on mobile */}
+          <div className="h-[30%] md:h-[30%] lg:h-[30%] min-h-[150px] flex-shrink-0 border-b border-gray-800 overflow-y-auto">
             <TaskInfo task={task} checkedItems={checkedItems} onToggleCheck={toggleCheck} />
           </div>
-          <Chat 
-            messages={messages}
-            input={input}
-            onInputChange={setInput}
-            onSend={() => handleSendWithAction('test')}
-            acceptanceTriggerId={acceptanceTriggerId}
-            onAcceptance={() => setShowAcceptanceModal(true)}
-            onReject={() => setShowAcceptanceModal(true)}
-          />
+          {/* Chat area - 70% on desktop, 60% on mobile */}
+          <div className="flex-1 overflow-hidden">
+            <Chat 
+              messages={messages}
+              input={input}
+              onInputChange={setInput}
+              onSend={() => handleSendWithAction('test')}
+              acceptanceTriggerId={acceptanceTriggerId}
+              onAcceptance={() => setShowAcceptanceModal(true)}
+              onReject={() => setShowAcceptanceModal(true)}
+            />
+          </div>
         </div>
       )}
 

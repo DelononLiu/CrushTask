@@ -69,6 +69,7 @@ export default function Home() {
   const [modules] = useState(() => expandAllModules(initialTasks));
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   const selectedTask = selectedTaskId 
     ? findTaskById(modules, selectedTaskId) 
@@ -83,10 +84,16 @@ export default function Home() {
     } else {
       setViewMode('list');
     }
+    // Close sidebar on mobile after selection
+    setSidebarOpen(false);
   };
 
   const handleBack = () => {
     setViewMode('list');
+  };
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
   };
 
   if (!selectedTask) {
@@ -98,19 +105,46 @@ export default function Home() {
   }
 
   return (
-    <div className="h-screen flex bg-[#0a0a0a]">
-      <TaskTree 
-        modules={modules} 
-        selectedTaskId={selectedTaskId || selectedTask.id}
-        onSelectTask={handleSelectTask}
-      />
-      <TaskDetail 
-        key={selectedTask.id}
-        task={selectedTask}
-        viewMode={viewMode}
-        onBack={handleBack}
-        parentTasks={childTasks}
-      />
+    <div className="h-screen flex bg-[#0a0a0a] relative overflow-hidden">
+      {/* Mobile menu toggle button */}
+      <button 
+        onClick={toggleSidebar}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800 rounded-lg text-white hover:bg-gray-700"
+      >
+        {sidebarOpen ? '✕' : '☰'}
+      </button>
+
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black/50 z-30"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar - drawer on mobile, fixed on desktop */}
+      <div className={`
+        fixed lg:relative z-40 h-full transition-transform duration-300
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        lg:w-64 w-64
+      `}>
+        <TaskTree 
+          modules={modules} 
+          selectedTaskId={selectedTaskId || selectedTask.id}
+          onSelectTask={handleSelectTask}
+        />
+      </div>
+
+      {/* Main content area */}
+      <div className="flex-1 h-full overflow-hidden lg:block flex flex-col">
+        <TaskDetail 
+          key={selectedTask.id}
+          task={selectedTask}
+          viewMode={viewMode}
+          onBack={handleBack}
+          parentTasks={childTasks}
+        />
+      </div>
     </div>
   );
 }
