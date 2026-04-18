@@ -22,19 +22,24 @@ const NODE_LEVELS = {
   TASK: 3,
 };
 
-const levelIcons: Record<number, string> = {
-  [NODE_LEVELS.PROJECT]: '📦',
-  [NODE_LEVELS.MODULE]: '🧩',
-  [NODE_LEVELS.SUBFEATURE]: '🔧',
-  [NODE_LEVELS.TASK]: '', // Will be set dynamically based on status
-};
-
-const getTaskIcon = (task: Task, level: number): string => {
-  if (level !== NODE_LEVELS.TASK) {
-    return levelIcons[level];
+const getNodeIcon = (task: Task, level: number): string => {
+  // 根节点
+  if (task.nodeType === 'root') {
+    return task.title === 'CrushTask' ? '📦' : '📋';
   }
-  // 原子任务：根据状态显示图标
-  return task.status === 'completed' ? '✅' : '📝';
+  // 分类节点（模块）
+  if (task.nodeType === 'category' || level === NODE_LEVELS.MODULE) {
+    return '📂';
+  }
+  // 子功能
+  if (level === NODE_LEVELS.SUBFEATURE) {
+    return '🔧';
+  }
+  // 原子任务
+  if (level === NODE_LEVELS.TASK || task.nodeType === 'task') {
+    return task.status === 'completed' ? '✅' : '📝';
+  }
+  return '📦';
 };
 
 export default function TaskTree({ modules, selectedTaskId, onSelectTask }: TaskTreeProps) {
@@ -85,7 +90,7 @@ export default function TaskTree({ modules, selectedTaskId, onSelectTask }: Task
                 ? 'text-white font-medium'
                 : 'text-gray-400'
           }`}>
-            {getTaskIcon(task, level)} {task.title}
+            {getNodeIcon(task, level)} {task.title}
           </span>
           
           {isSelected && isTask && <span className="ml-auto text-[#165DFF]">▶</span>}
