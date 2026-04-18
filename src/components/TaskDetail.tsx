@@ -58,8 +58,26 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   const [msgId, setMsgId] = useState(1);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // 抽屉控制台展开状态
-  const [isConsoleOpen, setIsConsoleOpen] = useState(false);
+  // 抽屉控制台状态: closed | expanded | maximized
+  const [consoleState, setConsoleState] = useState<'closed' | 'expanded' | 'maximized'>('closed');
+  
+  const isConsoleOpen = consoleState !== 'closed';
+  
+  // 切换控制台展开/收起
+  const toggleConsole = () => {
+    if (consoleState === 'closed') {
+      setConsoleState('expanded');
+    } else if (consoleState === 'expanded') {
+      setConsoleState('closed');
+    } else {
+      setConsoleState('closed');
+    }
+  };
+  
+  // 最大化/还原控制台
+  const toggleMaximize = () => {
+    setConsoleState(prev => prev === 'maximized' ? 'expanded' : 'maximized');
+  };
   
   const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({});
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({
@@ -92,7 +110,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === '`') {
         e.preventDefault();
-        setIsConsoleOpen(prev => !prev);
+        toggleConsole();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -304,7 +322,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
       {/* 触发条 */}
       <div 
         className="p-3 border-t border-gray-800 bg-gray-900/80 cursor-pointer hover:bg-gray-800 transition-colors"
-        onClick={() => setIsConsoleOpen(!isConsoleOpen)}
+        onClick={toggleConsole}
       >
         <div className="text-center text-sm text-gray-400 flex items-center justify-center gap-2">
           <span>💻</span>
@@ -356,25 +374,34 @@ export default function TaskDetail({ task }: TaskDetailProps) {
 
   // 抽屉式任务控制台
   const renderConsoleDrawer = () => (
-    <div className="flex flex-col h-full border-t border-gray-800">
-      {/* 快捷工具栏 */}
-      <div className="flex gap-2 p-3 border-b border-gray-800 bg-gray-900/50 flex-shrink-0">
+    <div className="flex flex-col h-full border-t border-gray-800 bg-[#0a0a0a]">
+      {/* 快捷工具栏 + 最大化按钮 */}
+      <div className="flex items-center gap-2 p-2 border-b border-gray-800 bg-gray-900/50 flex-shrink-0">
+        <div className="flex gap-2 flex-1">
+          <button 
+            onClick={handleRun}
+            className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700"
+          >
+            ▶ 执行任务
+          </button>
+          <button 
+            onClick={handleResult}
+            className="px-3 py-1.5 bg-gray-700 text-white rounded text-sm font-medium hover:bg-gray-600"
+          >
+            📊 查看结果
+          </button>
+          <button 
+            className="px-3 py-1.5 bg-gray-700 text-white rounded text-sm font-medium hover:bg-gray-600"
+          >
+            ✏️ 修改需求
+          </button>
+        </div>
         <button 
-          onClick={handleRun}
-          className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+          onClick={toggleMaximize}
+          className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded"
+          title={consoleState === 'maximized' ? '还原' : '最大化'}
         >
-          ▶ 执行任务 (/run)
-        </button>
-        <button 
-          onClick={handleResult}
-          className="flex-1 py-2 bg-gray-700 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors"
-        >
-          📊 查看结果 (/result)
-        </button>
-        <button 
-          className="flex-1 py-2 bg-gray-700 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors"
-        >
-          ✏️ 修改需求
+          {consoleState === 'maximized' ? '⬜' : '🗗'}
         </button>
       </div>
       
@@ -443,14 +470,14 @@ export default function TaskDetail({ task }: TaskDetailProps) {
 
       {/* 主内容区：静态信息区 + 抽屉控制台 */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* 上部分：任务静态信息区 (70%) */}
-        <div className={`${isConsoleOpen ? 'h-[70%]' : 'flex-1'} overflow-hidden flex flex-col transition-all`}>
+        {/* 上部分：任务静态信息区 */}
+        <div className={`overflow-hidden flex flex-col transition-all ${consoleState === 'maximized' ? 'hidden' : consoleState === 'expanded' ? 'h-[30%]' : 'flex-1'}`}>
           {renderStaticArea()}
         </div>
         
         {/* 下部分：抽屉式任务控制台 */}
         {isConsoleOpen && (
-          <div className="h-[30%] overflow-hidden flex flex-col">
+          <div className={`${consoleState === 'maximized' ? 'flex-1' : 'h-[70%]'} overflow-hidden flex flex-col`}>
             {renderConsoleDrawer()}
           </div>
         )}
