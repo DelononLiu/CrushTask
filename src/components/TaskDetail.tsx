@@ -70,6 +70,9 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     knowledge: false,
   });
   
+  // 任务执行状态
+  const [isExecuted, setIsExecuted] = useState(false);
+  
   // AI消息和执行日志
   const [messages, setMessages] = useState<AIMessage[]>([
     { id: 'init', role: 'assistant', content: `你好！我是AI助手，现在是"${task.title}"任务。有什么可以帮你的？`, timestamp: new Date().toLocaleString() }
@@ -88,6 +91,37 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     setExpandedModules(prev => ({ ...prev, [moduleId]: !prev[moduleId] }));
   };
 
+  const handleRun = () => {
+    setExecutionLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 开始执行任务...`, `[${new Date().toLocaleTimeString()}] 正在解析任务结构...`]);
+    setMessages(prev => [...prev, { id: String(msgId), role: 'user', content: '/run', timestamp: new Date().toLocaleString() }]);
+    setMsgId(prev => prev + 1);
+    
+    setTimeout(() => {
+      setExecutionLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 代码生成完成`, `[${new Date().toLocaleTimeString()}] 构建成功`, `[${new Date().toLocaleTimeString()}] 执行完成`]);
+      setIsExecuted(true);
+    }, 1500);
+    
+    setTimeout(() => {
+      setMessages(prev => [...prev, { id: String(msgId), role: 'assistant', content: '任务执行完成！请查看结果或进行验收。', timestamp: new Date().toLocaleString() }]);
+      setMsgId(prev => prev + 1);
+    }, 1600);
+  };
+
+  const handleResult = () => {
+    setExecutionLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 正在生成执行结果...`]);
+    setMessages(prev => [...prev, { id: String(msgId), role: 'user', content: '/result', timestamp: new Date().toLocaleString() }]);
+    setMsgId(prev => prev + 1);
+    
+    setTimeout(() => {
+      setExecutionLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 结果已生成`]);
+    }, 1000);
+    
+    setTimeout(() => {
+      setMessages(prev => [...prev, { id: String(msgId), role: 'assistant', content: '执行结果已生成，可以在下方查看详情。', timestamp: new Date().toLocaleString() }]);
+      setMsgId(prev => prev + 1);
+    }, 1100);
+  };
+
   const sendMessage = () => {
     if (!input.trim()) return;
     
@@ -100,21 +134,6 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     };
     setMsgId(prev => prev + 1);
     setMessages(prev => [...prev, userMsg]);
-    
-    // 处理命令
-    if (isCommand) {
-      if (input === '/run') {
-        setExecutionLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 开始执行任务...`, `[${new Date().toLocaleTimeString()}] 正在解析任务结构...`]);
-        setTimeout(() => {
-          setExecutionLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 代码生成完成`, `[${new Date().toLocaleTimeString()}] 构建成功`, `[${new Date().toLocaleTimeString()}] 执行完成`]);
-        }, 1500);
-      } else if (input === '/result') {
-        setExecutionLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 正在生成执行结果...`]);
-        setTimeout(() => {
-          setExecutionLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 结果已生成`]);
-        }, 1000);
-      }
-    }
     
     setInput('');
     
@@ -272,7 +291,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     </div>
   );
 
-  // 任务控制台 - 内容区
+  // 任务控制台 - 内容区（不可清空）
   const renderConsoleContent = () => (
     <div className="flex-1 overflow-y-auto space-y-4 p-4">
       {/* 执行日志 */}
@@ -308,21 +327,6 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         ))}
         <div ref={messagesEndRef} />
       </div>
-
-      {/* 验收操作区 */}
-      <div className="border-t border-gray-800 pt-4 mt-4">
-        <div className="flex gap-3">
-          <button className="flex-1 py-2 bg-green-600 text-white rounded-lg font-medium flex items-center justify-center gap-2">
-            <span>✅</span> 通过
-          </button>
-          <button className="flex-1 py-2 bg-red-600 text-white rounded-lg font-medium flex items-center justify-center gap-2">
-            <span>❌</span> 驳回
-          </button>
-        </div>
-        <div className="text-center text-xs text-gray-500 mt-2">
-          验收进度: {completedCount}/{totalCount} 已完成
-        </div>
-      </div>
     </div>
   );
 
@@ -331,6 +335,45 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     <div className="flex flex-col h-full">
       {/* 上部分70%：内容展示区 */}
       <div className="h-[70%] overflow-hidden flex flex-col">
+        {/* 快捷工具栏 */}
+        <div className="flex gap-2 p-3 border-b border-gray-800 bg-gray-900/50">
+          <button 
+            onClick={handleRun}
+            className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+          >
+            ▶ 执行任务 (/run)
+          </button>
+          <button 
+            onClick={handleResult}
+            className="flex-1 py-2 bg-gray-700 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors"
+          >
+            📊 查看结果 (/result)
+          </button>
+          <button 
+            className="flex-1 py-2 bg-gray-700 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors"
+          >
+            ✏️ 修改需求
+          </button>
+        </div>
+        
+        {/* 验收操作区 - 仅在执行完成后显示 */}
+        {isExecuted && (
+          <div className="px-3 py-2 border-b border-gray-800 bg-gray-900/30">
+            <div className="flex gap-2">
+              <button className="flex-1 py-2 bg-green-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-green-700">
+                <span>✅</span> 通过
+              </button>
+              <button className="flex-1 py-2 bg-red-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-red-700">
+                <span>❌</span> 驳回
+              </button>
+            </div>
+            <div className="text-center text-xs text-gray-500 mt-1">
+              验收进度: {completedCount}/{totalCount} 已完成
+            </div>
+          </div>
+        )}
+        
+        {/* 内容展示区 */}
         {renderConsoleContent()}
       </div>
       
