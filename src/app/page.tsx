@@ -19,17 +19,15 @@ function findTaskById(tasks: Task[], id: string): Task | null {
 
 function findFirstTask(tasks: Task[]): Task | null {
   for (const task of tasks) {
-    // If this is a leaf task (nodeType='task' and no children), return it
     if (task.nodeType === 'task' && (!task.children || task.children.length === 0)) {
       return task;
     }
-    // Otherwise, search in children
     if (task.children && task.children.length > 0) {
       const found = findFirstTask(task.children);
       if (found) return found;
     }
   }
-  return tasks[0] || null;
+  return null;
 }
 
 function expandAllModules(tasks: Task[]): Task[] {
@@ -71,7 +69,12 @@ export default function Home() {
   
   const selectedTask = selectedTaskId 
     ? findTaskById(modules, selectedTaskId) 
-    : findFirstTask(modules);
+    : (findFirstTask(modules) || modules[0]);
+
+  // Determine initial view mode based on whether selected task is atomic
+  const currentViewMode = selectedTaskId 
+    ? viewMode 
+    : (selectedTask && isAtomicTask(selectedTask) ? 'detail' : 'list');
 
   const childTasks = selectedTask ? collectChildTasks(modules, selectedTask.id) : [];
 
@@ -82,7 +85,6 @@ export default function Home() {
     } else {
       setViewMode('list');
     }
-    // Close sidebar on mobile after selection
     setSidebarOpen(false);
   };
 
@@ -104,7 +106,7 @@ export default function Home() {
 
   return (
     <div className="h-screen flex bg-[#0a0a0a] relative overflow-hidden">
-      {/* Mobile menu toggle button - hide on desktop */}
+      {/* Mobile menu toggle button */}
       <button 
         onClick={toggleSidebar}
         className="lg:hidden fixed top-3 left-3 z-50 p-2 bg-gray-800 rounded-lg text-white hover:bg-gray-700"
@@ -120,7 +122,7 @@ export default function Home() {
         />
       )}
 
-      {/* Sidebar - drawer on mobile, fixed on desktop */}
+      {/* Sidebar */}
       <div className={`
         fixed lg:relative z-40 h-full transition-transform duration-300
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -133,12 +135,12 @@ export default function Home() {
         />
       </div>
 
-      {/* Main content area - add left margin on mobile for menu button */}
+      {/* Main content area */}
       <div className="flex-1 h-full overflow-hidden lg:block flex flex-col lg:ml-0 ml-12">
         <TaskDetail 
           key={selectedTask.id}
           task={selectedTask}
-          viewMode={viewMode}
+          viewMode={currentViewMode}
           onBack={handleBack}
           parentTasks={childTasks}
         />
