@@ -48,20 +48,16 @@ export default function TaskHeader({ task, viewMode, onBack, checkedItems, onTog
 
   return (
     <div className="p-2 lg:p-3 border-b border-gray-800 bg-gradient-to-r from-gray-900 to-gray-800">
-      {/* Title row with status, priority, edit, back on right */}
-      <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center gap-1.5">
-          <span className={`px-1.5 py-0.5 text-[10px] font-medium border ${statusColors[task.status]}`}>{statusLabels[task.status]}</span>
-          <span className="px-1.5 py-0.5 text-[10px] font-medium bg-gray-500/20 text-gray-400 border border-gray-500/50">{priorityLabels[task.priority]}</span>
-          {onEdit && (
-            <button onClick={onEdit} className="px-1.5 py-0.5 text-[10px] bg-gray-700 text-gray-300 hover:bg-gray-600">✏️ 编辑</button>
-          )}
-        </div>
-        <button onClick={onBack} className="text-gray-400 hover:text-white text-xs">← 返回</button>
+      {/* Single row: status, priority, edit, title, back */}
+      <div className="flex items-center gap-1.5">
+        <span className={`px-1.5 py-0.5 text-[10px] font-medium border ${statusColors[task.status]}`}>{statusLabels[task.status]}</span>
+        <span className="px-1.5 py-0.5 text-[10px] font-medium bg-gray-500/20 text-gray-400 border border-gray-500/50">{priorityLabels[task.priority]}</span>
+        {onEdit && (
+          <button onClick={onEdit} className="px-1.5 py-0.5 text-[10px] bg-gray-700 text-gray-300 hover:bg-gray-600">✏️ 编辑</button>
+        )}
+        <h1 className="flex-1 text-sm lg:text-lg font-semibold text-white truncate">{task.title}</h1>
+        <button onClick={onBack} className="text-gray-400 hover:text-white text-xs whitespace-nowrap">← 返回</button>
       </div>
-      
-      {/* Title */}
-      <h1 className="text-sm lg:text-lg font-semibold text-white mb-1">{task.title}</h1>
       
       {/* Goal - core info */}
       {task.goal && (
