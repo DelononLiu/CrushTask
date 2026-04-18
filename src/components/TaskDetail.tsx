@@ -343,78 +343,66 @@ export default function TaskDetail({ task }: TaskDetailProps) {
 
       {/* 主内容区 */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* 上半部分：流程节点卡片（双状态：概览40% / 操作20%） */}
-        <div className={`${isOperationMode ? 'h-[20%] min-h-[50px]' : 'h-[40%]'} flex-shrink-0 border-b border-gray-800 transition-all duration-300`}>
-          <div className={`h-full flex ${isOperationMode ? 'items-center px-4' : 'flex-col p-3'}`}>
-            {isOperationMode ? (
-              // 操作模式：精简节点导航
-              <div className="flex items-center gap-2">
-                {flowNodes.map((node, index) => (
-                  <div key={node.id} className="flex items-center">
-                    <button
-                      onClick={() => handleFlowNodeClick(node.id)}
-                      className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                        activeFlowNode === node.id
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                      }`}
-                    >
-                      {node.label}
-                    </button>
-                    {index < flowNodes.length - 1 && (
-                      <span className="mx-1 text-gray-500">→</span>
-                    )}
+        {/* 卡片区域（双状态） */}
+        <div className={`${isOperationMode ? 'h-[15%] min-h-[40px]' : 'h-[35%]'} flex-shrink-0 border-b border-gray-800 transition-all duration-300 p-2`}>
+          {isOperationMode ? (
+            // 操作模式：精简横向导航
+            <div className="h-full flex items-center gap-2">
+              {flowNodes.map((node, index) => (
+                <div key={node.id} className="flex items-center">
+                  <button
+                    onClick={() => handleFlowNodeClick(node.id)}
+                    className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                      activeFlowNode === node.id
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                    }`}
+                  >
+                    {node.label}
+                  </button>
+                  {index < flowNodes.length - 1 && (
+                    <span className="mx-1 text-gray-500">→</span>
+                  )}
+                </div>
+              ))}
+              <button onClick={handleBackToOverview} className="ml-4 text-xs text-gray-500 hover:text-gray-300 flex items-center gap-1">
+                <span>←</span> 返回
+              </button>
+            </div>
+          ) : (
+            // 概览模式：4列完整卡片
+            <div className="h-full grid grid-cols-4 gap-2">
+              {flowNodes.map((node) => (
+                <div 
+                  key={node.id} 
+                  onClick={() => handleFlowNodeClick(node.id)}
+                  className={`rounded-lg border cursor-pointer transition-all hover:bg-gray-800 p-3 flex flex-col justify-between ${
+                    activeFlowNode === node.id ? 'border-blue-500 bg-blue-500/10' : 'border-gray-700 bg-gray-800/30'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`w-2 h-2 rounded-full ${activeFlowNode === node.id ? 'bg-blue-500' : 'bg-gray-600'}`}></span>
+                      <span className="text-sm font-medium text-gray-200">{node.label}</span>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {node.id === 'spec' && '任务规格、目标、输入输出、验收标准'}
+                      {node.id === 'code' && 'AI对话交互、代码生成、方案讨论'}
+                      {node.id === 'run' && '执行日志、编译构建、运行结果'}
+                      {node.id === 'review' && '经验总结、知识沉淀、结果归档'}
+                    </div>
                   </div>
-                ))}
-                <button onClick={handleBackToOverview} className="ml-4 text-xs text-gray-500 hover:text-gray-300 flex items-center gap-1">
-                  <span>←</span> 返回概览
-                </button>
-              </div>
-            ) : (
-              // 概览模式：卡片式布局
-              <div className="flex-1 flex flex-col gap-2 overflow-hidden">
-                <div className="flex items-center gap-2 mb-1">
-                  {flowNodes.map((node, index) => (
-                    <div key={node.id} className="flex items-center">
-                      <div className={`px-3 py-1.5 rounded text-xs font-medium ${
-                        activeFlowNode === node.id ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-500'
-                      }`}>{node.label}</div>
-                      {index < flowNodes.length - 1 && <span className="mx-1 text-gray-600 text-xs">→</span>}
-                    </div>
-                  ))}
+                  <div className="text-[10px] text-blue-400 mt-2">点击进入 →</div>
                 </div>
-                <div className="flex-1 grid grid-cols-4 gap-2 overflow-hidden">
-                  {flowNodes.map((node) => (
-                    <div 
-                      key={node.id} 
-                      onClick={() => handleFlowNodeClick(node.id)}
-                      className={`p-2 rounded-lg border cursor-pointer transition-all hover:bg-gray-800 overflow-hidden ${
-                        activeFlowNode === node.id ? 'border-blue-500 bg-blue-500/10' : 'border-gray-700 bg-gray-800/30'
-                      }`}
-                    >
-                      <div className="flex items-center gap-1 mb-1">
-                        <span className={`w-1.5 h-1.5 rounded-full ${activeFlowNode === node.id ? 'bg-blue-500' : 'bg-gray-600'}`}></span>
-                        <span className="text-xs font-medium text-gray-300">{node.label}</span>
-                      </div>
-                      <div className="text-[10px] text-gray-500 line-clamp-2">
-                        {node.id === 'spec' && '任务规格、目标、输入输出、验收标准'}
-                        {node.id === 'code' && 'AI对话交互、代码生成、方案讨论'}
-                        {node.id === 'run' && '执行日志、编译构建、运行结果'}
-                        {node.id === 'review' && '经验总结、知识沉淀、结果归档'}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* 上半部分：内容区（动态切换） */}
+        {/* 内容区（动态切换） */}
         <div className="flex-1 overflow-hidden flex flex-col border-b border-gray-800">
           <div className="flex-1 overflow-y-auto">
             {isOperationMode ? (
-              // 操作模式：显示详细界面
               <>
                 {activeFlowNode === 'spec' && renderSpec()}
                 {activeFlowNode === 'code' && renderCode()}
@@ -422,8 +410,10 @@ export default function TaskDetail({ task }: TaskDetailProps) {
                 {activeFlowNode === 'review' && renderReview()}
               </>
             ) : (
-              // 概览模式：显示概要信息
-              renderOverviewContent()
+              // 概览模式：空状态提示
+              <div className="flex items-center justify-center h-full text-gray-500 text-sm">
+                点击上方卡片进入对应操作区
+              </div>
             )}
           </div>
           
