@@ -367,6 +367,23 @@ export default function TaskDetail({ task }: TaskDetailProps) {
               <div className={`text-xs mt-1 ${msg.role === 'user' ? 'text-blue-200' : 'text-gray-500'}`}>
                 {msg.timestamp}
               </div>
+              {/* AI消息中的可点击验收按钮 */}
+              {msg.role === 'assistant' && isExecuted && (
+                <div className="flex gap-2 mt-2 pt-2 border-t border-gray-700">
+                  <button 
+                    onClick={() => setShowAcceptanceModal(true)}
+                    className="flex-1 py-1 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700"
+                  >
+                    ✅ 通过
+                  </button>
+                  <button 
+                    onClick={() => setShowAcceptanceModal(true)}
+                    className="flex-1 py-1 bg-red-600 text-white rounded text-xs font-medium hover:bg-red-700"
+                  >
+                    ❌ 驳回
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -435,29 +452,6 @@ export default function TaskDetail({ task }: TaskDetailProps) {
             </button>
           </div>
         </div>
-        
-        {/* 验收操作区 - 仅在执行完成后显示 */}
-        {isExecuted && (
-          <div className="px-3 py-2 border-t border-gray-800 bg-gray-900/30">
-            <div className="flex gap-2">
-              <button 
-                onClick={() => setShowAcceptanceModal(true)}
-                className="flex-1 py-1.5 bg-green-600 text-white rounded text-sm font-medium flex items-center justify-center gap-1 hover:bg-green-700"
-              >
-                <span>✅</span> 通过
-              </button>
-              <button 
-                onClick={() => setShowAcceptanceModal(true)}
-                className="flex-1 py-1.5 bg-red-600 text-white rounded text-sm font-medium flex items-center justify-center gap-1 hover:bg-red-700"
-              >
-                <span>❌</span> 驳回
-              </button>
-            </div>
-            <div className="text-center text-xs text-gray-500 mt-1">
-              验收进度: {completedCount}/{totalCount} 已完成
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
