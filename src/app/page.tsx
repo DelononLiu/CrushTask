@@ -137,9 +137,9 @@ export default function Home() {
 
         {/* Sidebar - slides from under header */}
         <div className={`
-          absolute lg:relative z-40 h-full transition-transform duration-300
+          absolute lg:relative z-40 transition-transform duration-300
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          lg:w-64 w-64 top-12 lg:top-0
+          w-64 top-12 bottom-0
         `}>
           <TaskTree 
             modules={modules} 

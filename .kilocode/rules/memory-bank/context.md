@@ -19,6 +19,7 @@
 - [x] typecheck和lint通过
 - [x] 添加全局Header：固定三横菜单按钮在左上角，sidebar从header下方滑出
 - [x] 详情页去除圆角：Chat消息、按钮、输入框等移除rounded样式
+- [x] 修复sidebar间距：sidebar使用top-12 bottom-0紧贴header底部
 
 ## Current Structure
 
