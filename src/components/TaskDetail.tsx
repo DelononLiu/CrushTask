@@ -380,29 +380,8 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         {renderConsoleContent()}
       </div>
       
-      {/* 输入框 + 工具栏 - 底部 */}
+      {/* 底部区域 - 输入框 + 工具栏 */}
       <div className="flex-shrink-0">
-        {/* 底部输入框 */}
-        <div className="p-2 border-t border-gray-800">
-          <div className="flex gap-2 items-center">
-            <div className="text-xs text-gray-500 whitespace-nowrap">支持: /run /result</div>
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-              placeholder="输入指令或消息..."
-              className="flex-1 bg-gray-800 text-white px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
-            <button 
-              onClick={sendMessage}
-              className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm"
-            >
-              发送
-            </button>
-          </div>
-        </div>
-        
         {/* 快捷工具栏 + 最大化按钮 */}
         <div className="flex items-center gap-2 p-2 border-t border-gray-800 bg-gray-900/50">
           <div className="flex gap-2 flex-1">
@@ -431,6 +410,27 @@ export default function TaskDetail({ task }: TaskDetailProps) {
           >
             {consoleState === 'maximized' ? '⬜' : '🗗'}
           </button>
+        </div>
+        
+        {/* 底部输入框 */}
+        <div className="p-2 border-t border-gray-800">
+          <div className="flex gap-2 items-center">
+            <div className="text-xs text-gray-500 whitespace-nowrap">支持: /run /result</div>
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+              placeholder="输入指令或消息..."
+              className="flex-1 bg-gray-800 text-white px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+            <button 
+              onClick={sendMessage}
+              className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm"
+            >
+              发送
+            </button>
+          </div>
         </div>
         
         {/* 验收操作区 - 仅在执行完成后显示 */}
