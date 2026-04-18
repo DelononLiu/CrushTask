@@ -17,6 +17,7 @@
 - [x] 实现详情视图：4卡片布局（Spec/Code/Run/Review）+ AI对话框
 - [x] 视图切换逻辑：点击父节点显示列表，点击原子任务显示详情
 - [x] typecheck和lint通过
+- [x] 添加全局Header：固定三横菜单按钮在左上角，sidebar从header下方滑出
 
 ## Current Structure
 

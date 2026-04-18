@@ -71,7 +71,6 @@ export default function Home() {
     ? findTaskById(modules, selectedTaskId) 
     : (findFirstTask(modules) || modules[0]);
 
-  // Determine initial view mode based on whether selected task is atomic
   const currentViewMode = selectedTaskId 
     ? viewMode 
     : (selectedTask && isAtomicTask(selectedTask) ? 'detail' : 'list');
@@ -105,45 +104,60 @@ export default function Home() {
   }
 
   return (
-    <div className="h-screen flex bg-[#0a0a0a] relative overflow-hidden">
-      {/* Mobile menu toggle button */}
-      <button 
-        onClick={toggleSidebar}
-        className="lg:hidden fixed top-3 left-3 z-50 p-2 bg-gray-800 rounded-lg text-white hover:bg-gray-700"
-      >
-        {sidebarOpen ? '✕' : '☰'}
-      </button>
+    <div className="h-screen flex flex-col bg-[#0a0a0a] overflow-hidden">
+      {/* Global Header */}
+      <header className="h-12 flex-shrink-0 bg-gray-900 border-b border-gray-800 flex items-center justify-between px-4 z-50">
+        {/* Left: Menu button */}
+        <button 
+          onClick={toggleSidebar}
+          className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg"
+        >
+          {sidebarOpen ? '✕' : '☰'}
+        </button>
+        
+        {/* Center: App title */}
+        <div className="flex items-center gap-2">
+          <span className="text-lg">📦</span>
+          <span className="text-base font-semibold text-white">CrushTask</span>
+        </div>
+        
+        {/* Right: Placeholder for future actions */}
+        <div className="w-10" />
+      </header>
 
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-black/50 z-30"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {/* Main area */}
+      <div className="flex-1 flex relative overflow-hidden">
+        {/* Mobile overlay */}
+        {sidebarOpen && (
+          <div 
+            className="lg:hidden fixed inset-0 bg-black/50 z-30"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
 
-      {/* Sidebar */}
-      <div className={`
-        fixed lg:relative z-40 h-full transition-transform duration-300
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        lg:w-64 w-64
-      `}>
-        <TaskTree 
-          modules={modules} 
-          selectedTaskId={selectedTaskId || selectedTask.id}
-          onSelectTask={handleSelectTask}
-        />
-      </div>
+        {/* Sidebar - slides from under header */}
+        <div className={`
+          absolute lg:relative z-40 h-full transition-transform duration-300
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          lg:w-64 w-64 top-12 lg:top-0
+        `}>
+          <TaskTree 
+            modules={modules} 
+            selectedTaskId={selectedTaskId || selectedTask.id}
+            onSelectTask={handleSelectTask}
+          />
+        </div>
 
-      {/* Main content area */}
-      <div className="flex-1 h-full overflow-hidden lg:block flex flex-col lg:ml-0 ml-12">
-        <TaskDetail 
-          key={selectedTask.id}
-          task={selectedTask}
-          viewMode={currentViewMode}
-          onBack={handleBack}
-          parentTasks={childTasks}
-        />
+        {/* Main content area */}
+        <div className="flex-1 overflow-hidden">
+          <TaskDetail 
+            key={selectedTask.id}
+            task={selectedTask}
+            viewMode={currentViewMode}
+            onBack={handleBack}
+            parentTasks={childTasks}
+          />
+        </div>
       </div>
     </div>
   );
