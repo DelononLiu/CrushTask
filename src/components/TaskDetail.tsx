@@ -27,12 +27,44 @@ const priorityLabels: Record<string, string> = {
   high: '高',
 };
 
+interface ModuleProps {
+  title: string;
+  expanded: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}
+
+function CollapsibleModule({ title, expanded, onToggle, children }: ModuleProps) {
+  return (
+    <div className="border-b border-gray-800">
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between p-3 hover:bg-gray-800/50 transition-colors"
+      >
+        <span className="text-sm font-medium text-gray-300">{title}</span>
+        <span className={`text-gray-500 transition-transform ${expanded ? 'rotate-180' : ''}`}>▼</span>
+      </button>
+      {expanded && (
+        <div className="px-3 pb-3">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function TaskDetail({ task }: TaskDetailProps) {
   const [input, setInput] = useState('');
   const [msgId, setMsgId] = useState(1);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<'body' | 'context' | 'ai' | 'acceptance'>('body');
   const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({});
+  const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({
+    goal: true,
+    io: true,
+    constraints: true,
+    acceptance: true,
+  });
   const [messages, setMessages] = useState<AIMessage[]>([
     { id: 'init', role: 'assistant', content: `你好！我是AI助手，现在是"${task.title}"任务。有什么可以帮你的？`, timestamp: new Date().toLocaleString() }
   ]);
@@ -40,6 +72,10 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  const toggleModule = (moduleId: string) => {
+    setExpandedModules(prev => ({ ...prev, [moduleId]: !prev[moduleId] }));
+  };
 
   const sendMessage = () => {
     if (!input.trim()) return;
@@ -76,65 +112,106 @@ export default function TaskDetail({ task }: TaskDetailProps) {
 
   const completedCount = Object.values(checkedItems).filter(Boolean).length;
   const totalCount = task.acceptanceCriteria?.length || 0;
+  const constraintsList = task.constraints ? task.constraints.split('\n').filter(c => c.trim()) : [];
 
   const renderTaskBody = () => (
-    <div className="space-y-4">
-      {task.goal && (
-        <div>
-          <h3 className="text-xs font-medium text-gray-500 mb-1">【任务目标】</h3>
-          <div className="text-gray-200 text-sm whitespace-pre-wrap">{task.goal}</div>
-        </div>
-      )}
-      
-      {task.input && (
-        <div>
-          <h3 className="text-xs font-medium text-gray-500 mb-1">【输入】</h3>
-          <div className="text-gray-200 text-sm whitespace-pre-wrap">{task.input}</div>
-        </div>
-      )}
-      
-      {task.output && (
-        <div>
-          <h3 className="text-xs font-medium text-gray-500 mb-1">【输出】</h3>
-          <div className="text-gray-200 text-sm whitespace-pre-wrap">{task.output}</div>
-        </div>
-      )}
-      
-      {task.constraints && (
-        <div>
-          <h3 className="text-xs font-medium text-gray-500 mb-1">【约束】</h3>
-          <div className="text-gray-200 text-sm whitespace-pre-wrap">{task.constraints}</div>
-        </div>
-      )}
-      
-      {task.acceptanceCriteria && task.acceptanceCriteria.length > 0 && (
-        <div>
-          <h3 className="text-xs font-medium text-gray-500 mb-1">【验收标准】</h3>
-          <div className="space-y-1">
-            {task.acceptanceCriteria.map((criteria, index) => (
-              <div 
-                key={index} 
-                className="flex items-start gap-2 cursor-pointer"
-                onClick={() => toggleCheck(index)}
-              >
-                <span className={`w-4 h-4 mt-0.5 rounded border flex items-center justify-center ${
-                  checkedItems[index] ? 'bg-blue-500 border-blue-500' : 'border-gray-600'
-                }`}>
-                  {checkedItems[index] && <span className="text-white text-xs">✓</span>}
-                </span>
-                <span className={`text-sm ${checkedItems[index] ? 'text-gray-500 line-through' : 'text-gray-300'}`}>
-                  {criteria}
-                </span>
-              </div>
-            ))}
+    <div className="divide-y divide-gray-800">
+      {/* 模块1: 任务目标 */}
+      <CollapsibleModule
+        title="任务目标"
+        expanded={expandedModules.goal}
+        onToggle={() => toggleModule('goal')}
+      >
+        <textarea
+          className="w-full bg-gray-800/50 text-gray-200 text-sm p-2 rounded resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
+          rows={3}
+          value={task.goal || ''}
+          placeholder="输入任务目标..."
+          readOnly
+        />
+      </CollapsibleModule>
+
+      {/* 模块2: 输入/输出 */}
+      <CollapsibleModule
+        title="输入 / 输出"
+        expanded={expandedModules.io}
+        onToggle={() => toggleModule('io')}
+      >
+        <div className="space-y-3">
+          <div>
+            <div className="text-xs text-gray-500 mb-1">输入</div>
+            <textarea
+              className="w-full bg-gray-800/50 text-gray-200 text-sm p-2 rounded resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
+              rows={2}
+              value={task.input || ''}
+              placeholder="输入..."
+              readOnly
+            />
+          </div>
+          <div>
+            <div className="text-xs text-gray-500 mb-1">输出</div>
+            <textarea
+              className="w-full bg-gray-800/50 text-gray-200 text-sm p-2 rounded resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
+              rows={2}
+              value={task.output || ''}
+              placeholder="输出..."
+              readOnly
+            />
           </div>
         </div>
-      )}
+      </CollapsibleModule>
+
+      {/* 模块3: 约束条件 */}
+      <CollapsibleModule
+        title="约束条件"
+        expanded={expandedModules.constraints}
+        onToggle={() => toggleModule('constraints')}
+      >
+        <div className="space-y-1">
+          {constraintsList.map((item, index) => (
+            <div key={index} className="flex items-start gap-2">
+              <span className="text-gray-500 mt-1">•</span>
+              <span className="text-gray-300 text-sm">{item.replace(/^[•\-\s]+/, '')}</span>
+            </div>
+          ))}
+          {constraintsList.length === 0 && (
+            <span className="text-gray-500 text-sm">暂无约束条件</span>
+          )}
+        </div>
+      </CollapsibleModule>
+
+      {/* 模块4: 验收标准 */}
+      <CollapsibleModule
+        title="验收标准"
+        expanded={expandedModules.acceptance}
+        onToggle={() => toggleModule('acceptance')}
+      >
+        <div className="space-y-2">
+          {(task.acceptanceCriteria || []).map((criteria, index) => (
+            <div 
+              key={index} 
+              className="flex items-center gap-2 cursor-pointer"
+              onClick={() => toggleCheck(index)}
+            >
+              <span className={`w-4 h-4 rounded border flex items-center justify-center ${
+                checkedItems[index] 
+                  ? 'bg-blue-500 border-blue-500' 
+                  : 'border-gray-600'
+              }`}>
+                {checkedItems[index] && <span className="text-white text-xs">✓</span>}
+              </span>
+              <span className={`text-sm ${checkedItems[index] ? 'text-gray-500 line-through' : 'text-gray-300'}`}>
+                {criteria}
+              </span>
+            </div>
+          ))}
+        </div>
+      </CollapsibleModule>
     </div>
   );
 
   const renderContext = () => (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4">
       <div>
         <h3 className="text-xs font-medium text-gray-500 mb-1">关联工程</h3>
         <div className="text-gray-200 text-sm">{task.context?.project || '无'}</div>
@@ -214,7 +291,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   );
 
   const renderAcceptance = () => (
-    <div className="space-y-4">
+    <div className="space-y-4 p-4">
       <h3 className="text-xs font-medium text-gray-500">验收清单（自动同步）</h3>
       <div className="space-y-2">
         {(task.acceptanceCriteria || []).map((criteria, index) => (
@@ -291,7 +368,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
       </div>
 
       {/* 主内容区 */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto">
         {activeTab === 'body' && renderTaskBody()}
         {activeTab === 'context' && renderContext()}
         {activeTab === 'ai' && renderAI()}
