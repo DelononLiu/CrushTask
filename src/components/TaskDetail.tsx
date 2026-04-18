@@ -44,6 +44,65 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   // 上半部分流程节点状态
   const [activeFlowNode, setActiveFlowNode] = useState<FlowNode>('spec');
   
+  // 双状态交互模式：概览模式(默认) vs 操作模式
+  const [isOperationMode, setIsOperationMode] = useState(false);
+  
+  // 跟踪前一个任务ID
+  const prevTaskIdRef = useRef(task.id);
+  
+  // 任务切换时重置到概览模式
+  if (task.id !== prevTaskIdRef.current) {
+    prevTaskIdRef.current = task.id;
+    setIsOperationMode(false);
+    setActiveFlowNode('spec');
+  }
+
+  // 处理流程节点点击 - 切换到操作模式
+  const handleFlowNodeClick = (node: FlowNode) => {
+    setActiveFlowNode(node);
+    setIsOperationMode(true);
+  };
+
+  // 切换回概览模式
+  const handleBackToOverview = () => {
+    setIsOperationMode(false);
+  };
+
+  // 概览模式内容
+  const renderOverviewContent = () => (
+    <div className="p-4 space-y-4">
+      <div className="flex items-center justify-center gap-2 mb-6">
+        {flowNodes.map((node, index) => (
+          <div key={node.id} className="flex items-center">
+            <div className={`px-3 py-1.5 rounded text-xs font-medium ${
+              activeFlowNode === node.id ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-500'
+            }`}>{node.label}</div>
+            {index < flowNodes.length - 1 && <span className="mx-2 text-gray-600 text-xs">→</span>}
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        {flowNodes.map((node) => (
+          <div key={node.id} onClick={() => handleFlowNodeClick(node.id)} className={`p-3 rounded-lg border cursor-pointer transition-all hover:bg-gray-800 ${
+            activeFlowNode === node.id ? 'border-blue-500 bg-blue-500/10' : 'border-gray-700 bg-gray-800/30'
+          }`}>
+            <div className="flex items-center gap-2 mb-1">
+              <span className={`w-2 h-2 rounded-full ${activeFlowNode === node.id ? 'bg-blue-500' : 'bg-gray-600'}`}></span>
+              <span className="text-sm font-medium text-gray-300">{node.label}</span>
+            </div>
+            <div className="text-xs text-gray-500">
+              {node.id === 'spec' && '任务规格、目标、输入输出、验收标准'}
+              {node.id === 'code' && 'AI对话交互、代码生成、方案讨论'}
+              {node.id === 'run' && '执行日志、编译构建、运行结果'}
+              {node.id === 'review' && '经验总结、知识沉淀、结果归档'}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="text-center text-xs text-gray-500 mt-4">点击任意节点进入操作模式</div>
+    </div>
+  );
+
   // 抽屉控制台状态
   const [consoleState, setConsoleState] = useState<'closed' | 'expanded' | 'maximized'>('closed');
   const isConsoleOpen = consoleState !== 'closed';
@@ -88,6 +147,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const toggleCheck = (index: number) => {
@@ -283,36 +343,64 @@ export default function TaskDetail({ task }: TaskDetailProps) {
 
       {/* 主内容区 */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* 上半部分：流程节点图（20%） */}
-        <div className="h-[20%] min-h-[60px] flex-shrink-0 border-b border-gray-800">
-          <div className="h-full flex items-center justify-center gap-2 px-4 bg-gray-900/50">
-            {flowNodes.map((node, index) => (
-              <div key={node.id} className="flex items-center">
-                <button
-                  onClick={() => setActiveFlowNode(node.id)}
-                  className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
-                    activeFlowNode === node.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                  }`}
-                >
-                  {node.label}
-                </button>
-                {index < flowNodes.length - 1 && (
-                  <span className="mx-2 text-gray-500">→</span>
-                )}
+        {/* 上半部分：流程节点图（双状态：概览40% / 操作20%） */}
+        <div className={`${isOperationMode ? 'h-[20%]' : 'h-[40%]'} flex-shrink-0 border-b border-gray-800 transition-all duration-300`}>
+          <div className="h-full flex flex-col">
+            {/* 节点导航栏 */}
+            <div className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-900/50 border-b border-gray-800/50">
+              {flowNodes.map((node, index) => (
+                <div key={node.id} className="flex items-center">
+                  <button
+                    onClick={() => handleFlowNodeClick(node.id)}
+                    className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
+                      activeFlowNode === node.id
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                    }`}
+                  >
+                    {node.label}
+                  </button>
+                  {index < flowNodes.length - 1 && (
+                    <span className="mx-2 text-gray-500">→</span>
+                  )}
+                </div>
+              ))}
+            </div>
+            {/* 状态指示 */}
+            {!isOperationMode && (
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-xs text-gray-500">
+                  当前阶段: <span className="text-blue-400">{flowNodes.find(n => n.id === activeFlowNode)?.label}</span>
+                  <span className="mx-2">|</span>
+                  状态: <span className="text-green-400">进行中</span>
+                </div>
               </div>
-            ))}
+            )}
+            {isOperationMode && (
+              <div className="flex-1 flex items-center px-4">
+                <button onClick={handleBackToOverview} className="text-xs text-gray-500 hover:text-gray-300 flex items-center gap-1">
+                  <span>←</span> 返回概览
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* 上半部分：内容区（80%） */}
+        {/* 上半部分：内容区（动态切换） */}
         <div className="flex-1 overflow-hidden flex flex-col border-b border-gray-800">
           <div className="flex-1 overflow-y-auto">
-            {activeFlowNode === 'spec' && renderSpec()}
-            {activeFlowNode === 'code' && renderCode()}
-            {activeFlowNode === 'run' && renderRun()}
-            {activeFlowNode === 'review' && renderReview()}
+            {isOperationMode ? (
+              // 操作模式：显示详细界面
+              <>
+                {activeFlowNode === 'spec' && renderSpec()}
+                {activeFlowNode === 'code' && renderCode()}
+                {activeFlowNode === 'run' && renderRun()}
+                {activeFlowNode === 'review' && renderReview()}
+              </>
+            ) : (
+              // 概览模式：显示概要信息
+              renderOverviewContent()
+            )}
           </div>
           
           {/* 打开控制台触发条 */}
