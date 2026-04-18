@@ -57,7 +57,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   const [input, setInput] = useState('');
   const [msgId, setMsgId] = useState(1);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useState<'body' | 'context' | 'ai' | 'acceptance'>('body');
+  const [activeTab, setActiveTab] = useState<'body' | 'context' | 'acceptance'>('body');
   const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({});
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({
     goal: true,
@@ -116,7 +116,6 @@ export default function TaskDetail({ task }: TaskDetailProps) {
 
   const renderTaskBody = () => (
     <div className="divide-y divide-gray-800">
-      {/* 模块1: 任务目标 */}
       <CollapsibleModule
         title="任务目标"
         expanded={expandedModules.goal}
@@ -131,7 +130,6 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         />
       </CollapsibleModule>
 
-      {/* 模块2: 输入/输出 */}
       <CollapsibleModule
         title="输入 / 输出"
         expanded={expandedModules.io}
@@ -161,7 +159,6 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         </div>
       </CollapsibleModule>
 
-      {/* 模块3: 约束条件 */}
       <CollapsibleModule
         title="约束条件"
         expanded={expandedModules.constraints}
@@ -180,7 +177,6 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         </div>
       </CollapsibleModule>
 
-      {/* 模块4: 验收标准 */}
       <CollapsibleModule
         title="验收标准"
         expanded={expandedModules.acceptance}
@@ -245,7 +241,44 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     </div>
   );
 
-  const renderAI = () => (
+  const renderAcceptance = () => (
+    <div className="space-y-4 p-4">
+      <h3 className="text-xs font-medium text-gray-500">验收清单（自动同步）</h3>
+      <div className="space-y-2">
+        {(task.acceptanceCriteria || []).map((criteria, index) => (
+          <div 
+            key={index} 
+            className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg cursor-pointer"
+            onClick={() => toggleCheck(index)}
+          >
+            <span className={`w-5 h-5 rounded border flex items-center justify-center ${
+              checkedItems[index] 
+                ? 'bg-green-500 border-green-500' 
+                : 'border-gray-600'
+            }`}>
+              {checkedItems[index] && <span className="text-white text-xs">✓</span>}
+            </span>
+            <span className={`text-sm ${checkedItems[index] ? 'text-gray-500 line-through' : 'text-gray-200'}`}>
+              {criteria}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="flex gap-3 pt-4">
+        <button className="flex-1 py-3 bg-green-600 text-white rounded-lg font-medium">
+          通过
+        </button>
+        <button className="flex-1 py-3 bg-red-600 text-white rounded-lg font-medium">
+          驳回
+        </button>
+      </div>
+      <div className="text-center text-sm text-gray-500">
+        进度: {completedCount}/{totalCount} 已完成
+      </div>
+    </div>
+  );
+
+  const renderAIChat = () => (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto space-y-3 p-4">
         {messages.map(msg => (
@@ -290,43 +323,6 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     </div>
   );
 
-  const renderAcceptance = () => (
-    <div className="space-y-4 p-4">
-      <h3 className="text-xs font-medium text-gray-500">验收清单（自动同步）</h3>
-      <div className="space-y-2">
-        {(task.acceptanceCriteria || []).map((criteria, index) => (
-          <div 
-            key={index} 
-            className="flex items-center gap-3 p-3 bg-gray-800/50 rounded-lg cursor-pointer"
-            onClick={() => toggleCheck(index)}
-          >
-            <span className={`w-5 h-5 rounded border flex items-center justify-center ${
-              checkedItems[index] 
-                ? 'bg-green-500 border-green-500' 
-                : 'border-gray-600'
-            }`}>
-              {checkedItems[index] && <span className="text-white text-xs">✓</span>}
-            </span>
-            <span className={`text-sm ${checkedItems[index] ? 'text-gray-500 line-through' : 'text-gray-200'}`}>
-              {criteria}
-            </span>
-          </div>
-        ))}
-      </div>
-      <div className="flex gap-3 pt-4">
-        <button className="flex-1 py-3 bg-green-600 text-white rounded-lg font-medium">
-          通过
-        </button>
-        <button className="flex-1 py-3 bg-red-600 text-white rounded-lg font-medium">
-          驳回
-        </button>
-      </div>
-      <div className="text-center text-sm text-gray-500">
-        进度: {completedCount}/{totalCount} 已完成
-      </div>
-    </div>
-  );
-
   return (
     <div className="flex-1 h-full flex flex-col bg-[#0a0a0a]">
       {/* 顶部：任务头部 */}
@@ -345,34 +341,45 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         </div>
       </div>
 
-      {/* 四大核心区Tab */}
-      <div className="flex border-b border-gray-800">
-        {[
-          { id: 'body', label: '任务本体' },
-          { id: 'context', label: '上下文' },
-          { id: 'ai', label: 'AI执行' },
-          { id: 'acceptance', label: '验收' },
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as typeof activeTab)}
-            className={`flex-1 py-3 text-sm font-medium transition-colors ${
-              activeTab === tab.id
-                ? 'text-blue-500 border-b-2 border-blue-500'
-                : 'text-gray-500 hover:text-gray-300'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* 上部分70%：三个Tab */}
+      <div className="h-[70%] flex flex-col">
+        {/* 三个核心Tab */}
+        <div className="flex border-b border-gray-800">
+          {[
+            { id: 'body', label: '任务本体' },
+            { id: 'context', label: '上下文' },
+            { id: 'acceptance', label: '验收' },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as typeof activeTab)}
+              className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                activeTab === tab.id
+                  ? 'text-blue-500 border-b-2 border-blue-500'
+                  : 'text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab内容区 */}
+        <div className="flex-1 overflow-y-auto">
+          {activeTab === 'body' && renderTaskBody()}
+          {activeTab === 'context' && renderContext()}
+          {activeTab === 'acceptance' && renderAcceptance()}
+        </div>
       </div>
 
-      {/* 主内容区 */}
-      <div className="flex-1 overflow-y-auto">
-        {activeTab === 'body' && renderTaskBody()}
-        {activeTab === 'context' && renderContext()}
-        {activeTab === 'ai' && renderAI()}
-        {activeTab === 'acceptance' && renderAcceptance()}
+      {/* 下部分30%：AI对话区 */}
+      <div className="h-[30%] border-t border-gray-800">
+        <div className="h-full flex flex-col">
+          <div className="px-3 py-2 border-b border-gray-800">
+            <span className="text-xs font-medium text-gray-400">AI对话</span>
+          </div>
+          {renderAIChat()}
+        </div>
       </div>
     </div>
   );
