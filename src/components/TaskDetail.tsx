@@ -193,63 +193,59 @@ export default function TaskDetail({ task, viewMode, onBack, parentTasks = [] }:
     );
   };
 
-  // 详情视图 - Spec
-  const renderSpec = () => (
-    <div className="space-y-0">
-      <div className="border-b border-gray-800 p-3">
-        <div className="text-xs font-medium text-gray-500 mb-1">任务目标</div>
-        <div className="text-gray-200 text-sm whitespace-pre-wrap">{task.goal || '暂无'}</div>
-      </div>
-      <div className="border-b border-gray-800 p-3">
-        <div className="text-xs font-medium text-gray-500 mb-1">输入</div>
-        <div className="text-gray-200 text-sm whitespace-pre-wrap">{task.input || '暂无'}</div>
-      </div>
-      <div className="border-b border-gray-800 p-3">
-        <div className="text-xs font-medium text-gray-500 mb-1">输出</div>
-        <div className="text-gray-200 text-sm whitespace-pre-wrap">{task.output || '暂无'}</div>
-      </div>
-      <div className="border-b border-gray-800 p-3">
-        <div className="text-xs font-medium text-gray-500 mb-2">约束条件</div>
-        <div className="space-y-1">
-          {constraintsList.map((item, index) => (
-            <div key={index} className="flex items-start gap-2"><span className="text-gray-500 mt-1">•</span><span className="text-gray-300 text-sm">{item.replace(/^[•\-\s]+/, '')}</span></div>
-          ))}
-          {constraintsList.length === 0 && <span className="text-gray-500 text-sm">暂无约束条件</span>}
+  // 详情视图 - 任务信息（简洁版）
+  const renderTaskInfo = () => (
+    <div className="h-full p-4 overflow-y-auto">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-gray-800/50 rounded-lg p-3">
+          <div className="text-xs text-gray-500 mb-1">任务目标</div>
+          <div className="text-sm text-gray-200 line-clamp-2">{task.goal || '暂无'}</div>
+        </div>
+        <div className="bg-gray-800/50 rounded-lg p-3">
+          <div className="text-xs text-gray-500 mb-1">输入</div>
+          <div className="text-sm text-gray-200 line-clamp-2">{task.input || '暂无'}</div>
+        </div>
+        <div className="bg-gray-800/50 rounded-lg p-3">
+          <div className="text-xs text-gray-500 mb-1">输出</div>
+          <div className="text-sm text-gray-200 line-clamp-2">{task.output || '暂无'}</div>
+        </div>
+        <div className="bg-gray-800/50 rounded-lg p-3">
+          <div className="text-xs text-gray-500 mb-1">约束条件</div>
+          <div className="text-sm text-gray-200 line-clamp-2">{task.constraints || '暂无'}</div>
+        </div>
+        <div className="bg-gray-800/50 rounded-lg p-3">
+          <div className="text-xs text-gray-500 mb-1">技术栈</div>
+          <div className="text-sm text-gray-200">
+            {task.context?.techStack?.join(', ') || '暂无'}
+          </div>
+        </div>
+        <div className="bg-gray-800/50 rounded-lg p-3">
+          <div className="text-xs text-gray-500 mb-1">相关文件</div>
+          <div className="text-sm text-gray-200 line-clamp-2">
+            {task.context?.relatedFiles?.join(', ') || '暂无'}
+          </div>
         </div>
       </div>
-      <div className="border-b border-gray-800 p-3">
-        <div className="text-xs font-medium text-gray-500 mb-2">验收标准</div>
-        <div className="space-y-2">
-          {(task.acceptanceCriteria || []).map((criteria, index) => (
-            <div key={index} className="flex items-center gap-2 cursor-pointer" onClick={() => toggleCheck(index)}>
-              <span className={`w-4 h-4 rounded border flex items-center justify-center ${checkedItems[index] ? 'bg-blue-500 border-blue-500' : 'border-gray-600'}`}>
-                {checkedItems[index] && <span className="text-white text-xs">✓</span>}
+      {task.acceptanceCriteria && task.acceptanceCriteria.length > 0 && (
+        <div className="mt-4 bg-gray-800/50 rounded-lg p-3">
+          <div className="text-xs text-gray-500 mb-2">验收标准 ({completedCount}/{totalCount})</div>
+          <div className="flex flex-wrap gap-2">
+            {(task.acceptanceCriteria || []).map((criteria, index) => (
+              <span 
+                key={index} 
+                onClick={() => toggleCheck(index)}
+                className={`px-2 py-1 rounded text-xs cursor-pointer ${
+                  checkedItems[index] 
+                    ? 'bg-green-600/20 text-green-400 line-through' 
+                    : 'bg-gray-700 text-gray-300'
+                }`}
+              >
+                {checkedItems[index] ? '✓' : '○'} {criteria}
               </span>
-              <span className={`text-sm ${checkedItems[index] ? 'text-gray-500 line-through' : 'text-gray-300'}`}>{criteria}</span>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
-      <div className="border-b border-gray-800 p-3">
-        <div className="text-xs font-medium text-gray-500 mb-1">关联工程</div>
-        <div className="text-gray-200 text-sm">{task.context?.project || '无'}</div>
-      </div>
-      <div className="border-b border-gray-800 p-3">
-        <div className="text-xs font-medium text-gray-500 mb-2">技术栈</div>
-        <div className="flex flex-wrap gap-1">
-          {task.context?.techStack?.map((tech, i) => (<span key={i} className="px-2 py-1 bg-blue-600/20 text-blue-400 text-xs rounded">{tech}</span>)) || <span className="text-gray-500 text-sm">无</span>}
-        </div>
-      </div>
-      <div className="border-b border-gray-800 p-3">
-        <div className="text-xs font-medium text-gray-500 mb-2">相关文件</div>
-        <div className="space-y-1">
-          {task.context?.relatedFiles?.map((file, i) => (<div key={i} className="text-gray-300 text-sm flex items-center gap-2"><span>📄</span> {file}</div>)) || <span className="text-gray-500 text-sm">无</span>}
-        </div>
-      </div>
-      <div className="p-3">
-        <div className="text-xs font-medium text-gray-500 mb-1">依赖任务</div>
-        <div className="text-gray-300 text-sm">{task.context?.dependentTasks?.join(', ') || '无'}</div>
-      </div>
+      )}
     </div>
   );
 
@@ -331,7 +327,7 @@ export default function TaskDetail({ task, viewMode, onBack, parentTasks = [] }:
     <div className="flex-1 flex flex-col overflow-hidden">
       {/* 上面30%：任务信息 */}
       <div className="h-[30%] min-h-[150px] flex-shrink-0 border-b border-gray-800 overflow-y-auto">
-        {renderSpec()}
+        {renderTaskInfo()}
       </div>
 
       {/* 下面70%：AI对话框 */}
