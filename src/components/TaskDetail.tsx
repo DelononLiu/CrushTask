@@ -152,12 +152,13 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   // 验收测试 - 执行任务，返回结果后显示通过/驳回按钮
   const handleAcceptanceTest = () => {
     const currentMsgId = msgId;
-    const triggerId = String(currentMsgId + 2);
-    setAcceptanceTriggerId(triggerId);
+    const userMsgId = String(currentMsgId);
+    const aiMsgId = String(currentMsgId + 1);
+    setAcceptanceTriggerId(aiMsgId);
     setMsgId(prev => prev + 1);
     
     setMessages(prev => [...prev, { 
-      id: String(currentMsgId), 
+      id: userMsgId, 
       role: 'user', 
       content: '请进行验收测试', 
       timestamp: new Date().toLocaleString() 
@@ -165,7 +166,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     
     setTimeout(() => {
       setMessages(prev => [...prev, { 
-        id: triggerId, 
+        id: aiMsgId, 
         role: 'assistant', 
         content: '🧪 验收测试执行中...\n\n测试用例：\n- 功能测试：通过\n- 边界测试：通过\n- 集成测试：通过\n\n请确认验收结果：',
         timestamp: new Date().toLocaleString() 
@@ -386,7 +387,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
                 {msg.timestamp}
               </div>
               {/* AI消息中的可点击验收按钮 - 仅在触发验收测试后的AI回复显示 */}
-              {msg.role === 'assistant' && acceptanceTriggerId && parseInt(msg.id) > parseInt(acceptanceTriggerId) && (
+              {msg.role === 'assistant' && acceptanceTriggerId && parseInt(msg.id) >= parseInt(acceptanceTriggerId) && (
                 <div className="flex gap-2 mt-2 pt-2 border-t border-gray-700">
                   <button 
                     onClick={() => setShowAcceptanceModal(true)}
