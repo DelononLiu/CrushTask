@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Task, AIMessage } from '@/types/task';
 
 interface TaskDetailProps {
@@ -58,8 +58,8 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   const [msgId, setMsgId] = useState(1);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // 标签状态：任务说明书 / 任务控制台
-  const [activeMainTab, setActiveMainTab] = useState<'manual' | 'console'>('manual');
+  // 抽屉控制台展开状态
+  const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   
   const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({});
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({
@@ -86,6 +86,18 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // 键盘快捷键 Ctrl+` 切换控制台
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === '`') {
+        e.preventDefault();
+        setIsConsoleOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const toggleModule = (moduleId: string) => {
     setExpandedModules(prev => ({ ...prev, [moduleId]: !prev[moduleId] }));
@@ -163,8 +175,8 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   const totalCount = task.acceptanceCriteria?.length || 0;
   const constraintsList = task.constraints ? task.constraints.split('\n').filter(c => c.trim()) : [];
 
-  // 任务说明书 - 全部内容平铺
-  const renderManual = () => (
+  // 任务静态信息区 - 全部内容平铺
+  const renderStaticArea = () => (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto">
         {/* 任务目标 */}
@@ -288,10 +300,22 @@ export default function TaskDetail({ task }: TaskDetailProps) {
           <div className="text-gray-500 text-sm">暂无知识库沉淀</div>
         </CollapsibleModule>
       </div>
+
+      {/* 触发条 */}
+      <div 
+        className="p-3 border-t border-gray-800 bg-gray-900/80 cursor-pointer hover:bg-gray-800 transition-colors"
+        onClick={() => setIsConsoleOpen(!isConsoleOpen)}
+      >
+        <div className="text-center text-sm text-gray-400 flex items-center justify-center gap-2">
+          <span>💻</span>
+          <span>打开任务控制台</span>
+          <span className="text-xs text-gray-500">(Ctrl+`)</span>
+        </div>
+      </div>
     </div>
   );
 
-  // 任务控制台 - 内容区（不可清空）
+  // 控制台内容区（不可清空）
   const renderConsoleContent = () => (
     <div className="flex-1 overflow-y-auto space-y-4 p-4">
       {/* 执行日志 */}
@@ -330,55 +354,54 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     </div>
   );
 
-  // 任务控制台
-  const renderConsole = () => (
-    <div className="flex flex-col h-full">
-      {/* 内容展示区 */}
-      <div className="flex-1 overflow-hidden flex flex-col">
-        {/* 快捷工具栏 */}
-        <div className="flex gap-2 p-3 border-b border-gray-800 bg-gray-900/50 flex-shrink-0">
-          <button 
-            onClick={handleRun}
-            className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-          >
-            ▶ 执行任务 (/run)
-          </button>
-          <button 
-            onClick={handleResult}
-            className="flex-1 py-2 bg-gray-700 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors"
-          >
-            📊 查看结果 (/result)
-          </button>
-          <button 
-            className="flex-1 py-2 bg-gray-700 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors"
-          >
-            ✏️ 修改需求
-          </button>
-        </div>
-        
-        {/* 验收操作区 - 仅在执行完成后显示 */}
-        {isExecuted && (
-          <div className="px-3 py-2 border-b border-gray-800 bg-gray-900/30 flex-shrink-0">
-            <div className="flex gap-2">
-              <button className="flex-1 py-2 bg-green-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-green-700">
-                <span>✅</span> 通过
-              </button>
-              <button className="flex-1 py-2 bg-red-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-red-700">
-                <span>❌</span> 驳回
-              </button>
-            </div>
-            <div className="text-center text-xs text-gray-500 mt-1">
-              验收进度: {completedCount}/{totalCount} 已完成
-            </div>
+  // 抽屉式任务控制台
+  const renderConsoleDrawer = () => (
+    <div className="flex flex-col h-full border-t border-gray-800">
+      {/* 快捷工具栏 */}
+      <div className="flex gap-2 p-3 border-b border-gray-800 bg-gray-900/50 flex-shrink-0">
+        <button 
+          onClick={handleRun}
+          className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+        >
+          ▶ 执行任务 (/run)
+        </button>
+        <button 
+          onClick={handleResult}
+          className="flex-1 py-2 bg-gray-700 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors"
+        >
+          📊 查看结果 (/result)
+        </button>
+        <button 
+          className="flex-1 py-2 bg-gray-700 text-white rounded-lg text-sm font-medium hover:bg-gray-600 transition-colors"
+        >
+          ✏️ 修改需求
+        </button>
+      </div>
+      
+      {/* 验收操作区 - 仅在执行完成后显示 */}
+      {isExecuted && (
+        <div className="px-3 py-2 border-b border-gray-800 bg-gray-900/30 flex-shrink-0">
+          <div className="flex gap-2">
+            <button className="flex-1 py-2 bg-green-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-green-700">
+              <span>✅</span> 通过
+            </button>
+            <button className="flex-1 py-2 bg-red-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-red-700">
+              <span>❌</span> 驳回
+            </button>
           </div>
-        )}
-        
-        {/* 内容区 */}
+          <div className="text-center text-xs text-gray-500 mt-1">
+            验收进度: {completedCount}/{totalCount} 已完成
+          </div>
+        </div>
+      )}
+      
+      {/* 内容区 */}
+      <div className="flex-1 overflow-hidden flex flex-col">
         {renderConsoleContent()}
       </div>
       
-      {/* 下部分：固定输入框 */}
-      <div className="border-t border-gray-800 p-3">
+      {/* 底部输入框 */}
+      <div className="p-3 border-t border-gray-800 flex-shrink-0">
         <div className="flex gap-2 items-center">
           <div className="text-xs text-gray-500 whitespace-nowrap">支持: /run /result</div>
           <input
@@ -418,30 +441,19 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         </div>
       </div>
 
-      {/* 主标签切换 */}
-      <div className="flex border-b border-gray-800">
-        {[
-          { id: 'manual', label: '任务说明书' },
-          { id: 'console', label: '任务控制台' },
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveMainTab(tab.id as typeof activeMainTab)}
-            className={`flex-1 py-3 text-sm font-medium transition-colors ${
-              activeMainTab === tab.id
-                ? 'text-blue-500 border-b-2 border-blue-500'
-                : 'text-gray-500 hover:text-gray-300'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* 主内容区 */}
-      <div className="flex-1 overflow-hidden">
-        {activeMainTab === 'manual' && renderManual()}
-        {activeMainTab === 'console' && renderConsole()}
+      {/* 主内容区：静态信息区 + 抽屉控制台 */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 上部分：任务静态信息区 (70%) */}
+        <div className={`${isConsoleOpen ? 'h-[70%]' : 'flex-1'} overflow-hidden flex flex-col transition-all`}>
+          {renderStaticArea()}
+        </div>
+        
+        {/* 下部分：抽屉式任务控制台 */}
+        {isConsoleOpen && (
+          <div className="h-[30%] overflow-hidden flex flex-col">
+            {renderConsoleDrawer()}
+          </div>
+        )}
       </div>
     </div>
   );
