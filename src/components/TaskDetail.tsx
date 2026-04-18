@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Task, AIMessage } from '@/types/task';
 
 interface TaskDetailProps {
@@ -27,43 +27,27 @@ const priorityLabels: Record<string, string> = {
   high: '高',
 };
 
-interface ModuleProps {
-  title: string;
-  expanded: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
-}
+type TabType = 'overview' | 'techStack' | 'log' | 'knowledge';
 
-function CollapsibleModule({ title, expanded, onToggle, children }: ModuleProps) {
-  return (
-    <div className="border-b border-gray-800">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between p-3 hover:bg-gray-800/50 transition-colors"
-      >
-        <span className="text-sm font-medium text-gray-300">{title}</span>
-        <span className={`text-gray-500 transition-transform ${expanded ? 'rotate-180' : ''}`}>▼</span>
-      </button>
-      {expanded && (
-        <div className="px-3 pb-3">
-          {children}
-        </div>
-      )}
-    </div>
-  );
-}
+const tabs: { id: TabType; label: string }[] = [
+  { id: 'overview', label: '概览' },
+  { id: 'techStack', label: '技术栈' },
+  { id: 'log', label: '日志' },
+  { id: 'knowledge', label: '沉淀' },
+];
 
 export default function TaskDetail({ task }: TaskDetailProps) {
   const [input, setInput] = useState('');
   const [msgId, setMsgId] = useState(1);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
+  // 上半部分标签页状态
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
+  
   // 抽屉控制台状态: closed | expanded | maximized
   const [consoleState, setConsoleState] = useState<'closed' | 'expanded' | 'maximized'>('closed');
-  
   const isConsoleOpen = consoleState !== 'closed';
   
-  // 切换控制台展开/收起
   const toggleConsole = () => {
     if (consoleState === 'closed') {
       setConsoleState('expanded');
@@ -73,12 +57,11 @@ export default function TaskDetail({ task }: TaskDetailProps) {
       setConsoleState('closed');
     }
   };
-  
-  // 最大化/还原控制台
+
   const toggleMaximize = () => {
     setConsoleState(prev => prev === 'maximized' ? 'expanded' : 'maximized');
   };
-  
+
   const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({});
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({
     goal: true,
@@ -87,22 +70,15 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     acceptance: true,
     knowledge: false,
   });
-  
-  // 任务执行状态
+
   const [isExecuted, setIsExecuted] = useState(false);
-  
-  // 验收测试模式 - 记录触发验收的消息ID
   const [acceptanceTriggerId, setAcceptanceTriggerId] = useState<string | null>(null);
-  
-  // 验收弹窗状态
   const [showAcceptanceModal, setShowAcceptanceModal] = useState(false);
-  
-  // AI消息和执行日志
+
   const [messages, setMessages] = useState<AIMessage[]>([
     { id: 'init', role: 'assistant', content: `你好！我是AI助手，现在是"${task.title}"任务。有什么可以帮你的？`, timestamp: new Date().toLocaleString() }
   ]);
-  
-  // 执行日志
+
   const [executionLogs, setExecutionLogs] = useState<string[]>([
     '[系统] 任务初始化完成',
   ]);
@@ -111,7 +87,6 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // 键盘快捷键 Ctrl+` 切换控制台
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === '`') {
@@ -126,6 +101,14 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   const toggleModule = (moduleId: string) => {
     setExpandedModules(prev => ({ ...prev, [moduleId]: !prev[moduleId] }));
   };
+
+  const toggleCheck = (index: number) => {
+    setCheckedItems(prev => ({ ...prev, [index]: !prev[index] }));
+  };
+
+  const completedCount = Object.values(checkedItems).filter(Boolean).length;
+  const totalCount = task.acceptanceCriteria?.length || 0;
+  const constraintsList = task.constraints ? task.constraints.split('\n').filter(c => c.trim()) : [];
 
   // 执行 (/run) - 运行并返回打印输出
   const handleRun = () => {
@@ -186,7 +169,6 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     };
     setMsgId(prev => prev + 1);
     setMessages(prev => [...prev, userMsg]);
-    
     setInput('');
     
     setTimeout(() => {
@@ -207,155 +189,172 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     }, 800);
   };
 
-  const toggleCheck = (index: number) => {
-    setCheckedItems(prev => ({ ...prev, [index]: !prev[index] }));
-  };
-
-  const completedCount = Object.values(checkedItems).filter(Boolean).length;
-  const totalCount = task.acceptanceCriteria?.length || 0;
-  const constraintsList = task.constraints ? task.constraints.split('\n').filter(c => c.trim()) : [];
-
-  // 任务静态信息区 - 全部内容平铺
-  const renderStaticArea = () => (
-    <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto">
-        {/* 任务目标 */}
-        <CollapsibleModule
-          title="任务目标"
-          expanded={expandedModules.goal}
-          onToggle={() => toggleModule('goal')}
-        >
-          <div className="text-gray-200 text-sm whitespace-pre-wrap">{task.goal || '暂无'}</div>
-        </CollapsibleModule>
-
-        {/* 输入/输出 */}
-        <CollapsibleModule
-          title="输入 / 输出"
-          expanded={expandedModules.io}
-          onToggle={() => toggleModule('io')}
-        >
-          <div className="space-y-3">
-            <div>
-              <div className="text-xs text-gray-500 mb-1">输入</div>
-              <div className="text-gray-200 text-sm whitespace-pre-wrap">{task.input || '暂无'}</div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-500 mb-1">输出</div>
-              <div className="text-gray-200 text-sm whitespace-pre-wrap">{task.output || '暂无'}</div>
-            </div>
-          </div>
-        </CollapsibleModule>
-
-        {/* 约束条件 */}
-        <CollapsibleModule
-          title="约束条件"
-          expanded={expandedModules.constraints}
-          onToggle={() => toggleModule('constraints')}
-        >
-          <div className="space-y-1">
-            {constraintsList.map((item, index) => (
-              <div key={index} className="flex items-start gap-2">
-                <span className="text-gray-500 mt-1">•</span>
-                <span className="text-gray-300 text-sm">{item.replace(/^[•\-\s]+/, '')}</span>
-              </div>
-            ))}
-            {constraintsList.length === 0 && (
-              <span className="text-gray-500 text-sm">暂无约束条件</span>
-            )}
-          </div>
-        </CollapsibleModule>
-
-        {/* 验收标准 */}
-        <CollapsibleModule
-          title="验收标准"
-          expanded={expandedModules.acceptance}
-          onToggle={() => toggleModule('acceptance')}
-        >
-          <div className="space-y-2">
-            {(task.acceptanceCriteria || []).map((criteria, index) => (
-              <div 
-                key={index} 
-                className="flex items-center gap-2 cursor-pointer"
-                onClick={() => toggleCheck(index)}
-              >
-                <span className={`w-4 h-4 rounded border flex items-center justify-center ${
-                  checkedItems[index] 
-                    ? 'bg-blue-500 border-blue-500' 
-                    : 'border-gray-600'
-                }`}>
-                  {checkedItems[index] && <span className="text-white text-xs">✓</span>}
-                </span>
-                <span className={`text-sm ${checkedItems[index] ? 'text-gray-500 line-through' : 'text-gray-300'}`}>
-                  {criteria}
-                </span>
-              </div>
-            ))}
-          </div>
-        </CollapsibleModule>
-
-        {/* 上下文 - 关联工程 */}
-        <div className="border-b border-gray-800 p-3">
-          <div className="text-xs font-medium text-gray-500 mb-1">关联工程</div>
-          <div className="text-gray-200 text-sm">{task.context?.project || '无'}</div>
-        </div>
-
-        {/* 技术栈 */}
-        <div className="border-b border-gray-800 p-3">
-          <div className="text-xs font-medium text-gray-500 mb-1">技术栈</div>
-          <div className="flex flex-wrap gap-1">
-            {task.context?.techStack?.map((tech, i) => (
-              <span key={i} className="px-2 py-1 bg-blue-600/20 text-blue-400 text-xs rounded">
-                {tech}
-              </span>
-            )) || <span className="text-gray-500 text-sm">无</span>}
-          </div>
-        </div>
-
-        {/* 相关文件 */}
-        <div className="border-b border-gray-800 p-3">
-          <div className="text-xs font-medium text-gray-500 mb-1">相关文件</div>
-          <div className="space-y-1">
-            {task.context?.relatedFiles?.map((file, i) => (
-              <div key={i} className="text-gray-300 text-sm flex items-center gap-2">
-                <span>📄</span> {file}
-              </div>
-            )) || <span className="text-gray-500 text-sm">无</span>}
-          </div>
-        </div>
-
-        {/* 依赖任务 */}
-        <div className="border-b border-gray-800 p-3">
-          <div className="text-xs font-medium text-gray-500 mb-1">依赖任务</div>
-          <div className="text-gray-300 text-sm">
-            {task.context?.dependentTasks?.join(', ') || '无'}
-          </div>
-        </div>
-
-        {/* 知识库沉淀 */}
-        <CollapsibleModule
-          title="知识库沉淀"
-          expanded={expandedModules.knowledge}
-          onToggle={() => toggleModule('knowledge')}
-        >
-          <div className="text-gray-500 text-sm">暂无知识库沉淀</div>
-        </CollapsibleModule>
+  // 概览标签页
+  const renderOverview = () => (
+    <div className="space-y-0">
+      <div className="border-b border-gray-800 p-3">
+        <div className="text-xs font-medium text-gray-500 mb-1">任务目标</div>
+        <div className="text-gray-200 text-sm whitespace-pre-wrap">{task.goal || '暂无'}</div>
       </div>
-
-      {/* 触发条 */}
-      <div 
-        className="p-3 border-t border-gray-800 bg-gray-900/80 cursor-pointer hover:bg-gray-800 transition-colors"
-        onClick={toggleConsole}
-      >
-        <div className="text-center text-sm text-gray-400 flex items-center justify-center gap-2">
-          <span>💻</span>
-          <span>打开任务控制台</span>
-          <span className="text-xs text-gray-500">(Ctrl+`)</span>
+      
+      <div className="border-b border-gray-800 p-3">
+        <div className="text-xs font-medium text-gray-500 mb-1">输入</div>
+        <div className="text-gray-200 text-sm whitespace-pre-wrap">{task.input || '暂无'}</div>
+      </div>
+      
+      <div className="border-b border-gray-800 p-3">
+        <div className="text-xs font-medium text-gray-500 mb-1">输出</div>
+        <div className="text-gray-200 text-sm whitespace-pre-wrap">{task.output || '暂无'}</div>
+      </div>
+      
+      <div className="border-b border-gray-800 p-3">
+        <div className="text-xs font-medium text-gray-500 mb-2">约束条件</div>
+        <div className="space-y-1">
+          {constraintsList.map((item, index) => (
+            <div key={index} className="flex items-start gap-2">
+              <span className="text-gray-500 mt-1">•</span>
+              <span className="text-gray-300 text-sm">{item.replace(/^[•\-\s]+/, '')}</span>
+            </div>
+          ))}
+          {constraintsList.length === 0 && (
+            <span className="text-gray-500 text-sm">暂无约束条件</span>
+          )}
+        </div>
+      </div>
+      
+      <div className="p-3">
+        <div className="text-xs font-medium text-gray-500 mb-2">验收标准</div>
+        <div className="space-y-2">
+          {(task.acceptanceCriteria || []).map((criteria, index) => (
+            <div 
+              key={index} 
+              className="flex items-center gap-2 cursor-pointer"
+              onClick={() => toggleCheck(index)}
+            >
+              <span className={`w-4 h-4 rounded border flex items-center justify-center ${
+                checkedItems[index] ? 'bg-blue-500 border-blue-500' : 'border-gray-600'
+              }`}>
+                {checkedItems[index] && <span className="text-white text-xs">✓</span>}
+              </span>
+              <span className={`text-sm ${checkedItems[index] ? 'text-gray-500 line-through' : 'text-gray-300'}`}>
+                {criteria}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 
-  // 控制台内容区（不可清空）
+  // 技术栈标签页
+  const renderTechStack = () => (
+    <div className="space-y-0">
+      <div className="border-b border-gray-800 p-3">
+        <div className="text-xs font-medium text-gray-500 mb-1">关联工程</div>
+        <div className="text-gray-200 text-sm">{task.context?.project || '无'}</div>
+      </div>
+      
+      <div className="border-b border-gray-800 p-3">
+        <div className="text-xs font-medium text-gray-500 mb-2">技术栈</div>
+        <div className="flex flex-wrap gap-1">
+          {task.context?.techStack?.map((tech, i) => (
+            <span key={i} className="px-2 py-1 bg-blue-600/20 text-blue-400 text-xs rounded">
+              {tech}
+            </span>
+          )) || <span className="text-gray-500 text-sm">无</span>}
+        </div>
+      </div>
+      
+      <div className="border-b border-gray-800 p-3">
+        <div className="text-xs font-medium text-gray-500 mb-2">相关文件</div>
+        <div className="space-y-1">
+          {task.context?.relatedFiles?.map((file, i) => (
+            <div key={i} className="text-gray-300 text-sm flex items-center gap-2">
+              <span>📄</span> {file}
+            </div>
+          )) || <span className="text-gray-500 text-sm">无</span>}
+        </div>
+      </div>
+      
+      <div className="p-3">
+        <div className="text-xs font-medium text-gray-500 mb-1">依赖任务</div>
+        <div className="text-gray-300 text-sm">
+          {task.context?.dependentTasks?.join(', ') || '无'}
+        </div>
+      </div>
+    </div>
+  );
+
+  // 日志标签页
+  const renderLog = () => (
+    <div className="flex flex-col h-full">
+      <div className="flex-1 overflow-y-auto p-3 space-y-3">
+        {/* 执行日志 */}
+        <div className="bg-gray-900 rounded-lg p-3">
+          <div className="text-xs font-medium text-gray-400 mb-2">执行日志</div>
+          <div className="font-mono text-xs text-green-400 space-y-1">
+            {executionLogs.map((log, i) => (
+              <div key={i}>{log}</div>
+            ))}
+          </div>
+        </div>
+        
+        {/* 对话历史 */}
+        <div className="space-y-3">
+          {messages.map(msg => (
+            <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[85%] p-3 rounded-xl text-sm ${
+                msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-200'
+              }`}>
+                {msg.role === 'assistant' && (
+                  <div className="flex items-center gap-1 mb-1 text-blue-400 text-xs">
+                    <span>🤖</span> <span>AI助手</span>
+                  </div>
+                )}
+                {msg.role === 'user' && (
+                  <div className="flex items-center gap-1 mb-1 text-blue-200 text-xs">
+                    <span>👤</span> <span>用户</span>
+                  </div>
+                )}
+                <div>{msg.content}</div>
+                <div className={`text-xs mt-1 ${msg.role === 'user' ? 'text-blue-200' : 'text-gray-500'} text-right`}>
+                  {msg.timestamp}
+                </div>
+              </div>
+            </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+    </div>
+  );
+
+  // 沉淀标签页
+  const renderKnowledge = () => (
+    <div className="space-y-0">
+      <div className="border-b border-gray-800 p-3">
+        <div className="text-xs font-medium text-gray-500 mb-1">任务输出</div>
+        <div className="text-gray-300 text-sm">暂无输出</div>
+      </div>
+      
+      <div className="border-b border-gray-800 p-3">
+        <div className="text-xs font-medium text-gray-500 mb-1">知识库</div>
+        <div className="text-gray-300 text-sm">暂无知识库</div>
+      </div>
+      
+      <div className="border-b border-gray-800 p-3">
+        <div className="text-xs font-medium text-gray-500 mb-1">经验沉淀</div>
+        <div className="text-gray-300 text-sm">暂无经验沉淀</div>
+      </div>
+      
+      <div className="p-3">
+        <div className="text-xs font-medium text-gray-500 mb-1">结果归档</div>
+        <div className="text-gray-300 text-sm">暂无归档</div>
+      </div>
+    </div>
+  );
+
+  // 控制台内容区
   const renderConsoleContent = () => (
     <div className="flex-1 overflow-y-auto space-y-4 p-4">
       {/* 执行日志 */}
@@ -373,9 +372,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         {messages.map(msg => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[85%] p-3 rounded-xl text-sm ${
-              msg.role === 'user' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-gray-800 text-gray-200'
+              msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-200'
             }`}>
               {msg.role === 'assistant' && (
                 <div className="flex items-center gap-1 mb-1 text-blue-400 text-xs">
@@ -383,7 +380,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
                 </div>
               )}
               <div>{msg.content}</div>
-              <div className={`text-xs mt-1 ${msg.role === 'user' ? 'text-blue-200' : 'text-gray-500'}`}>
+              <div className={`text-xs mt-1 ${msg.role === 'user' ? 'text-blue-200' : 'text-gray-500'} text-right`}>
                 {msg.timestamp}
               </div>
               {/* AI消息中的可点击验收按钮 - 仅在验收测试的AI回复显示 */}
@@ -488,14 +485,51 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         </div>
       </div>
 
-      {/* 主内容区：静态信息区 + 抽屉控制台 */}
+      {/* 主内容区：上半部分标签页 + 下半部分控制台 */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* 上部分：任务静态信息区 */}
-        <div className={`overflow-hidden flex flex-col transition-all ${consoleState === 'maximized' ? 'hidden' : consoleState === 'expanded' ? 'h-[30%]' : 'flex-1'}`}>
-          {renderStaticArea()}
+        {/* 上半部分：标签页区域 */}
+        <div className={`${isConsoleOpen ? 'h-[30%]' : 'flex-1'} overflow-hidden flex flex-col border-b border-gray-800`}>
+          {/* 标签栏 */}
+          <div className="flex border-b border-gray-800 bg-gray-900/50 flex-shrink-0">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex-1 py-3 text-sm font-medium transition-colors ${
+                  activeTab === tab.id
+                    ? 'text-blue-500 border-b-2 border-blue-500'
+                    : 'text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+          
+          {/* 标签内容区 */}
+          <div className="flex-1 overflow-y-auto">
+            {activeTab === 'overview' && renderOverview()}
+            {activeTab === 'techStack' && renderTechStack()}
+            {activeTab === 'log' && renderLog()}
+            {activeTab === 'knowledge' && renderKnowledge()}
+          </div>
+          
+          {/* 打开控制台触发条 */}
+          {consoleState === 'closed' && (
+            <div 
+              className="p-2 border-t border-gray-800 bg-gray-900/80 cursor-pointer hover:bg-gray-800 transition-colors flex-shrink-0"
+              onClick={toggleConsole}
+            >
+              <div className="text-center text-sm text-gray-400 flex items-center justify-center gap-2">
+                <span>💻</span>
+                <span>打开任务控制台</span>
+                <span className="text-xs text-gray-500">(Ctrl+`)</span>
+              </div>
+            </div>
+          )}
         </div>
         
-        {/* 下部分：抽屉式任务控制台 */}
+        {/* 下半部分：抽屉式任务控制台 */}
         {isConsoleOpen && (
           <div className={`${consoleState === 'maximized' ? 'flex-1' : 'h-[70%]'} overflow-hidden flex flex-col`}>
             {renderConsoleDrawer()}
