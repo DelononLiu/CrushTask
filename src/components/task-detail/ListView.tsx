@@ -3,6 +3,7 @@ import { Task } from '@/types/task';
 interface ListViewProps {
   task: Task;
   parentTasks: Task[];
+  onSelectTask?: (task: Task) => void;
 }
 
 const statusLabels: Record<string, string> = {
@@ -35,7 +36,7 @@ const getStatusDotColor = (status: string) => {
   return colors[status] || 'bg-gray-500';
 };
 
-export default function ListView({ task, parentTasks }: ListViewProps) {
+export default function ListView({ task, parentTasks, onSelectTask }: ListViewProps) {
   const groupedTasks: Record<string, Task[]> = {
     in_progress: [],
     pending: [],
@@ -67,7 +68,11 @@ export default function ListView({ task, parentTasks }: ListViewProps) {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 lg:gap-3">
               {groupedTasks[status].map(t => (
-                <div key={t.id} className="bg-gray-800/50 rounded-lg p-3 border border-gray-700 hover:border-blue-500 cursor-pointer transition-colors">
+                <div 
+                  key={t.id} 
+                  className="bg-gray-800/50 rounded-lg p-3 border border-gray-700 hover:border-blue-500 cursor-pointer transition-colors"
+                  onDoubleClick={() => onSelectTask?.(t)}
+                >
                   <div className="flex items-center gap-2 mb-2">
                     <span className={`w-2 h-2 rounded-full ${getStatusDotColor(t.status)}`}></span>
                     <span className="text-sm font-medium text-[#165DFF]">{t.title}</span>

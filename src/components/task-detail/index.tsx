@@ -12,10 +12,11 @@ interface TaskDetailProps {
   task: Task;
   viewMode: 'list' | 'detail';
   onBack: () => void;
+  onSelectTask?: (task: Task) => void;
   parentTasks?: Task[];
 }
 
-export default function TaskDetail({ task, viewMode, onBack, parentTasks = [] }: TaskDetailProps) {
+export default function TaskDetail({ task, viewMode, onBack, onSelectTask, parentTasks = [] }: TaskDetailProps) {
   const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({});
   const [acceptanceTriggerId, setAcceptanceTriggerId] = useState<string | null>(null);
   const [showAcceptanceModal, setShowAcceptanceModal] = useState(false);
@@ -94,7 +95,7 @@ export default function TaskDetail({ task, viewMode, onBack, parentTasks = [] }:
       />
       
       {viewMode === 'list' ? (
-        <ListView task={task} parentTasks={parentTasks} />
+        <ListView task={task} parentTasks={parentTasks} onSelectTask={onSelectTask} />
       ) : (
         <div className="flex-1 flex flex-col bg-[#0d0d0d] border-t border-gray-700 overflow-hidden">
           <Chat 

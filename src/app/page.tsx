@@ -164,6 +164,7 @@ export default function Home() {
             task={selectedTask}
             viewMode={currentViewMode}
             onBack={handleBack}
+            onSelectTask={handleSelectTask}
             parentTasks={childTasks}
           />
         </div>
