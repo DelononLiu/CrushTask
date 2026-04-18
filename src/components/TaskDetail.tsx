@@ -386,8 +386,8 @@ export default function TaskDetail({ task }: TaskDetailProps) {
               <div className={`text-xs mt-1 ${msg.role === 'user' ? 'text-blue-200' : 'text-gray-500'}`}>
                 {msg.timestamp}
               </div>
-              {/* AI消息中的可点击验收按钮 - 仅在触发验收测试后的AI回复显示 */}
-              {msg.role === 'assistant' && acceptanceTriggerId && parseInt(msg.id) >= parseInt(acceptanceTriggerId) && (
+              {/* AI消息中的可点击验收按钮 - 仅在验收测试的AI回复显示 */}
+              {msg.role === 'assistant' && acceptanceTriggerId && msg.id === acceptanceTriggerId && (
                 <div className="flex gap-2 mt-2 pt-2 border-t border-gray-700">
                   <button 
                     onClick={() => setShowAcceptanceModal(true)}
