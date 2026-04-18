@@ -1,16 +1,28 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Task, AIMessage } from '@/types/task';
 
 interface TaskDetailProps {
   task: Task;
+  viewMode: 'list' | 'detail';
+  onBack: () => void;
+  parentTasks?: Task[];
 }
 
+type FlowNode = 'spec' | 'code' | 'run' | 'review';
+
+const flowNodes: { id: FlowNode; label: string }[] = [
+  { id: 'spec', label: 'Spec' },
+  { id: 'code', label: 'Code' },
+  { id: 'run', label: 'Run' },
+  { id: 'review', label: 'Review' },
+];
+
 const statusLabels: Record<string, string> = {
-  pending: '待定义',
-  in_progress: '执行中',
-  completed: '已完成',
+  pending: '计划',
+  in_progress: '正在进行',
+  completed: '完成',
   rejected: '已驳回',
 };
 
@@ -27,90 +39,12 @@ const priorityLabels: Record<string, string> = {
   high: '高',
 };
 
-type FlowNode = 'spec' | 'code' | 'run' | 'review';
-
-const flowNodes: { id: FlowNode; label: string }[] = [
-  { id: 'spec', label: 'Spec' },
-  { id: 'code', label: 'Code' },
-  { id: 'run', label: 'Run' },
-  { id: 'review', label: 'Review' },
-];
-
-export default function TaskDetail({ task }: TaskDetailProps) {
+export default function TaskDetail({ task, viewMode, onBack, parentTasks = [] }: TaskDetailProps) {
+  const [activeFlowNode, setActiveFlowNode] = useState<FlowNode>('spec');
+  const [isOperationMode, setIsOperationMode] = useState(false);
   const [input, setInput] = useState('');
   const [msgId, setMsgId] = useState(1);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
-  // 上半部分流程节点状态
-  const [activeFlowNode, setActiveFlowNode] = useState<FlowNode>('spec');
-  
-  // 双状态交互模式：概览模式(默认) vs 操作模式
-  const [isOperationMode, setIsOperationMode] = useState(false);
-
-  // 处理流程节点点击 - 切换到操作模式
-  const handleFlowNodeClick = (node: FlowNode) => {
-    setActiveFlowNode(node);
-    setIsOperationMode(true);
-  };
-
-  // 切换回概览模式
-  const handleBackToOverview = () => {
-    setIsOperationMode(false);
-  };
-
-  // 概览模式内容
-  const renderOverviewContent = () => (
-    <div className="p-4 space-y-4">
-      <div className="flex items-center justify-center gap-2 mb-6">
-        {flowNodes.map((node, index) => (
-          <div key={node.id} className="flex items-center">
-            <div className={`px-3 py-1.5 rounded text-xs font-medium ${
-              activeFlowNode === node.id ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-500'
-            }`}>{node.label}</div>
-            {index < flowNodes.length - 1 && <span className="mx-2 text-gray-600 text-xs">→</span>}
-          </div>
-        ))}
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        {flowNodes.map((node) => (
-          <div key={node.id} onClick={() => handleFlowNodeClick(node.id)} className={`p-3 rounded-lg border cursor-pointer transition-all hover:bg-gray-800 ${
-            activeFlowNode === node.id ? 'border-blue-500 bg-blue-500/10' : 'border-gray-700 bg-gray-800/30'
-          }`}>
-            <div className="flex items-center gap-2 mb-1">
-              <span className={`w-2 h-2 rounded-full ${activeFlowNode === node.id ? 'bg-blue-500' : 'bg-gray-600'}`}></span>
-              <span className="text-sm font-medium text-gray-300">{node.label}</span>
-            </div>
-            <div className="text-xs text-gray-500">
-              {node.id === 'spec' && '任务规格、目标、输入输出、验收标准'}
-              {node.id === 'code' && 'AI对话交互、代码生成、方案讨论'}
-              {node.id === 'run' && '执行日志、编译构建、运行结果'}
-              {node.id === 'review' && '经验总结、知识沉淀、结果归档'}
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="text-center text-xs text-gray-500 mt-4">点击任意节点进入操作模式</div>
-    </div>
-  );
-
-  // 抽屉控制台状态
-  const [consoleState, setConsoleState] = useState<'closed' | 'expanded' | 'maximized'>('closed');
-  const isConsoleOpen = consoleState !== 'closed';
-  
-  const toggleConsole = () => {
-    if (consoleState === 'closed') {
-      setConsoleState('expanded');
-    } else if (consoleState === 'expanded') {
-      setConsoleState('closed');
-    } else {
-      setConsoleState('closed');
-    }
-  };
-
-  const toggleMaximize = () => {
-    setConsoleState(prev => prev === 'maximized' ? 'expanded' : 'maximized');
-  };
-
   const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({});
   const [acceptanceTriggerId, setAcceptanceTriggerId] = useState<string | null>(null);
   const [showAcceptanceModal, setShowAcceptanceModal] = useState(false);
@@ -127,6 +61,25 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+    setMessages([
+      { id: 'init', role: 'assistant', content: `你好！我是AI助手，现在是"${task.title}"任务。有什么可以帮你的？`, timestamp: new Date().toLocaleString() }
+    ]);
+    setActiveFlowNode('spec');
+    setIsOperationMode(false);
+    setCheckedItems({});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [task.id]);
+
+  const handleFlowNodeClick = (node: FlowNode) => {
+    setActiveFlowNode(node);
+    setIsOperationMode(true);
+  };
+
+  const handleBackToOverview = () => {
+    setIsOperationMode(false);
+  };
+
   const toggleCheck = (index: number) => {
     setCheckedItems(prev => ({ ...prev, [index]: !prev[index] }));
   };
@@ -135,7 +88,6 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   const totalCount = task.acceptanceCriteria?.length || 0;
   const constraintsList = task.constraints ? task.constraints.split('\n').filter(c => c.trim()) : [];
 
-  // 执行 (/run)
   const handleRun = () => {
     const currentMsgId = msgId;
     setMsgId(prev => prev + 1);
@@ -145,7 +97,6 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     }, 800);
   };
 
-  // 验收测试
   const handleAcceptanceTest = () => {
     const currentMsgId = msgId;
     const userMsgId = String(currentMsgId);
@@ -173,7 +124,76 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     }, 800);
   };
 
-  // Spec - 任务规格
+  const getStatusDotColor = (status: string) => {
+    const colors: Record<string, string> = {
+      pending: 'bg-gray-500',
+      in_progress: 'bg-blue-500',
+      completed: 'bg-green-500',
+      rejected: 'bg-red-500',
+    };
+    return colors[status] || 'bg-gray-500';
+  };
+
+  // 列表视图分组
+  const groupedTasks = useMemo(() => {
+    const groups: Record<string, Task[]> = {
+      in_progress: [],
+      pending: [],
+      completed: [],
+    };
+    parentTasks.forEach(t => {
+      if (groups[t.status]) {
+        groups[t.status].push(t);
+      } else if (t.status === 'rejected') {
+        groups.pending.push(t);
+      }
+    });
+    return groups;
+  }, [parentTasks]);
+
+  // 列表视图
+  const renderListView = () => {
+    const groupOrder = ['in_progress', 'pending', 'completed'];
+
+    return (
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-white">{task.title}</h2>
+        </div>
+        {groupOrder.map(status => (
+          groupedTasks[status].length > 0 && (
+            <div key={status} className="mb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className={`w-2 h-2 rounded-full ${getStatusDotColor(status)}`}></span>
+                <span className="text-sm font-medium text-gray-300">{statusLabels[status]}</span>
+                <span className="text-xs text-gray-500">({groupedTasks[status].length})</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                {groupedTasks[status].map(t => (
+                  <div key={t.id} className="bg-gray-800/50 rounded-lg p-3 border border-gray-700 hover:border-blue-500 cursor-pointer transition-colors">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className={`w-2 h-2 rounded-full ${getStatusDotColor(t.status)}`}></span>
+                      <span className="text-sm font-medium text-[#165DFF]">{t.title}</span>
+                    </div>
+                    <div className="text-xs text-gray-500">{t.module}{t.subFeature && ` → ${t.subFeature}`}</div>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className={`px-1.5 py-0.5 rounded text-[10px] border ${statusColors[t.status]}`}>{statusLabels[t.status]}</span>
+                      <span className="text-[10px] text-gray-500">{priorityLabels[t.priority]}优先级</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        ))}
+        {parentTasks.length === 0 && (
+          <div className="text-center text-gray-500 py-8">暂无子任务</div>
+        )}
+      </div>
+    );
+  };
+
+  // 详情视图 - Spec
   const renderSpec = () => (
     <div className="space-y-0">
       <div className="border-b border-gray-800 p-3">
@@ -233,7 +253,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     </div>
   );
 
-  // Code - AI对话框
+  // 详情视图 - Code (AI对话框)
   const renderCode = () => (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -259,7 +279,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     </div>
   );
 
-  // Run - 执行日志
+  // 详情视图 - Run (执行日志)
   const renderRun = () => (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -284,7 +304,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     </div>
   );
 
-  // Review - 复盘沉淀
+  // 详情视图 - Review (复盘沉淀)
   const renderReview = () => (
     <div className="space-y-0">
       <div className="border-b border-gray-800 p-3">
@@ -306,10 +326,86 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     </div>
   );
 
-  return (
-    <div className="flex-1 h-full flex flex-col bg-[#0a0a0a]">
-      {/* 顶部：任务头部 */}
+  // 详情视图 - 主布局
+  const renderDetailView = () => (
+    <div className="flex-1 flex flex-col overflow-hidden">
+      {/* 顶部卡片区域（双状态） */}
+      <div className={`${isOperationMode ? 'h-[15%] min-h-[40px]' : 'h-[35%]'} flex-shrink-0 border-b border-gray-800 transition-all duration-300 p-2`}>
+        {isOperationMode ? (
+          <div className="h-full flex items-center gap-2">
+            {flowNodes.map((node, index) => (
+              <div key={node.id} className="flex items-center">
+                <button onClick={() => handleFlowNodeClick(node.id)} className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${activeFlowNode === node.id ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}>
+                  {node.label}
+                </button>
+                {index < flowNodes.length - 1 && <span className="mx-1 text-gray-500">→</span>}
+              </div>
+            ))}
+            <button onClick={handleBackToOverview} className="ml-4 text-xs text-gray-500 hover:text-gray-300 flex items-center gap-1">
+              <span>←</span> 返回
+            </button>
+          </div>
+        ) : (
+          <div className="h-full grid grid-cols-4 gap-2 justify-items-center items-center">
+            {flowNodes.map((node) => (
+              <div key={node.id} onClick={() => handleFlowNodeClick(node.id)} className={`rounded-lg border cursor-pointer transition-all hover:bg-gray-800 p-3 flex flex-col justify-between ${activeFlowNode === node.id ? 'border-blue-500 bg-blue-500/10' : 'border-gray-700 bg-gray-800/30'}`}>
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`w-2 h-2 rounded-full ${activeFlowNode === node.id ? 'bg-blue-500' : 'bg-gray-600'}`}></span>
+                    <span className="text-sm font-medium text-gray-300">{node.label}</span>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {node.id === 'spec' && '任务规格、目标、输入输出、验收标准'}
+                    {node.id === 'code' && 'AI对话交互、代码生成、方案讨论'}
+                    {node.id === 'run' && '执行日志、编译构建、运行结果'}
+                    {node.id === 'review' && '经验总结、知识沉淀、结果归档'}
+                  </div>
+                </div>
+                <div className="text-[10px] text-blue-400 mt-2">点击进入 →</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 内容区（动态切换） */}
+      <div className="flex-1 overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-y-auto">
+          {isOperationMode ? (
+            <>
+              {activeFlowNode === 'spec' && renderSpec()}
+              {activeFlowNode === 'code' && renderCode()}
+              {activeFlowNode === 'run' && renderRun()}
+              {activeFlowNode === 'review' && renderReview()}
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-500 text-sm">
+              点击上方卡片进入对应操作区
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  // 渲染头部
+  const renderHeader = () => {
+    if (viewMode === 'list') {
+      return (
+        <div className="p-4 border-b border-gray-800 bg-gradient-to-r from-gray-900 to-gray-800">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">📂</span>
+            <h1 className="text-xl font-semibold text-white">{task.title}</h1>
+          </div>
+          <div className="text-sm text-gray-500 mt-1">{task.module}{task.subFeature ? ` → ${task.subFeature}` : ''}</div>
+        </div>
+      );
+    }
+    return (
       <div className="p-4 border-b border-gray-800 bg-gradient-to-r from-gray-900 to-gray-800">
+        <div className="flex items-center gap-2 mb-2">
+          <button onClick={onBack} className="text-gray-400 hover:text-white text-sm">← 返回</button>
+        </div>
         <div className="flex items-center gap-2 mb-2">
           <span className={`px-2 py-0.5 rounded text-xs font-medium border ${statusColors[task.status]}`}>{statusLabels[task.status]}</span>
           <span className="px-2 py-0.5 rounded text-xs font-medium bg-gray-500/20 text-gray-400 border border-gray-500/50">{priorityLabels[task.priority]}优先级</span>
@@ -317,84 +413,13 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         <h1 className="text-xl font-semibold text-white">{task.title}</h1>
         <div className="text-sm text-gray-500 mt-1">{task.module}{task.subFeature ? ` → ${task.subFeature}` : ''}</div>
       </div>
+    );
+  };
 
-      {/* 主内容区 */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* 卡片区域（双状态） */}
-        <div className={`${isOperationMode ? 'h-[15%] min-h-[40px]' : 'h-[35%]'} flex-shrink-0 border-b border-gray-800 transition-all duration-300 p-2`}>
-          {isOperationMode ? (
-            // 操作模式：精简横向导航
-            <div className="h-full flex items-center gap-2">
-              {flowNodes.map((node, index) => (
-                <div key={node.id} className="flex items-center">
-                  <button
-                    onClick={() => handleFlowNodeClick(node.id)}
-                    className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                      activeFlowNode === node.id
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                    }`}
-                  >
-                    {node.label}
-                  </button>
-                  {index < flowNodes.length - 1 && (
-                    <span className="mx-1 text-gray-500">→</span>
-                  )}
-                </div>
-              ))}
-              <button onClick={handleBackToOverview} className="ml-4 text-xs text-gray-500 hover:text-gray-300 flex items-center gap-1">
-                <span>←</span> 返回
-              </button>
-            </div>
-          ) : (
-            // 概览模式：4列完整卡片
-            <div className="h-full grid grid-cols-4 gap-2 justify-items-center items-center">
-              {flowNodes.map((node) => (
-                <div 
-                  key={node.id} 
-                  onClick={() => handleFlowNodeClick(node.id)}
-                  className={`rounded-lg border cursor-pointer transition-all hover:bg-gray-800 p-3 flex flex-col justify-between ${
-                    activeFlowNode === node.id ? 'border-blue-500 bg-blue-500/10' : 'border-gray-700 bg-gray-800/30'
-                  }`}
-                >
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`w-2 h-2 rounded-full ${activeFlowNode === node.id ? 'bg-blue-500' : 'bg-gray-600'}`}></span>
-                      <span className="text-sm font-medium text-gray-200">{node.label}</span>
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {node.id === 'spec' && '任务规格、目标、输入输出、验收标准'}
-                      {node.id === 'code' && 'AI对话交互、代码生成、方案讨论'}
-                      {node.id === 'run' && '执行日志、编译构建、运行结果'}
-                      {node.id === 'review' && '经验总结、知识沉淀、结果归档'}
-                    </div>
-                  </div>
-                  <div className="text-[10px] text-blue-400 mt-2">点击进入 →</div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* 内容区（动态切换） */}
-        <div className="flex-1 overflow-hidden flex flex-col border-b border-gray-800">
-          <div className="flex-1 overflow-y-auto">
-            {isOperationMode ? (
-              <>
-                {activeFlowNode === 'spec' && renderSpec()}
-                {activeFlowNode === 'code' && renderCode()}
-                {activeFlowNode === 'run' && renderRun()}
-                {activeFlowNode === 'review' && renderReview()}
-              </>
-            ) : (
-              // 概览模式：空状态提示
-              <div className="flex items-center justify-center h-full text-gray-500 text-sm">
-                点击上方卡片进入对应操作区
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+  return (
+    <div className="flex-1 h-full flex flex-col bg-[#0a0a0a]">
+      {renderHeader()}
+      {viewMode === 'list' ? renderListView() : renderDetailView()}
 
       {/* 验收弹窗 */}
       {showAcceptanceModal && (

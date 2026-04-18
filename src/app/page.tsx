@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Task } from '@/types/task';
 import { initialTasks } from '@/types/task';
 import TaskTree from '@/components/TaskTree';
@@ -42,16 +42,51 @@ function expandAllModules(tasks: Task[]): Task[] {
   }));
 }
 
+function collectChildTasks(tasks: Task[], parentId: string): Task[] {
+  const parent = findTaskById(tasks, parentId);
+  if (!parent || !parent.children) return [];
+  
+  const result: Task[] = [];
+  const collect = (nodes: Task[]) => {
+    for (const node of nodes) {
+      if (node.nodeType === 'task') {
+        result.push(node);
+      }
+      if (node.children) {
+        collect(node.children);
+      }
+    }
+  };
+  collect(parent.children);
+  return result;
+}
+
+function isAtomicTask(task: Task): boolean {
+  return task.nodeType === 'task' && (!task.children || task.children.length === 0);
+}
+
 export default function Home() {
   const [modules] = useState(() => expandAllModules(initialTasks));
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
   
   const selectedTask = selectedTaskId 
     ? findTaskById(modules, selectedTaskId) 
     : findFirstTask(modules);
 
+  const childTasks = selectedTask ? collectChildTasks(modules, selectedTask.id) : [];
+
   const handleSelectTask = (task: Task) => {
     setSelectedTaskId(task.id);
+    if (isAtomicTask(task)) {
+      setViewMode('detail');
+    } else {
+      setViewMode('list');
+    }
+  };
+
+  const handleBack = () => {
+    setViewMode('list');
   };
 
   if (!selectedTask) {
@@ -69,7 +104,13 @@ export default function Home() {
         selectedTaskId={selectedTaskId || selectedTask.id}
         onSelectTask={handleSelectTask}
       />
-      <TaskDetail key={selectedTask.id} task={selectedTask} />
+      <TaskDetail 
+        key={selectedTask.id}
+        task={selectedTask}
+        viewMode={viewMode}
+        onBack={handleBack}
+        parentTasks={childTasks}
+      />
     </div>
   );
 }
