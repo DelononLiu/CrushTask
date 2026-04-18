@@ -91,8 +91,8 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   // 任务执行状态
   const [isExecuted, setIsExecuted] = useState(false);
   
-  // 验收测试模式
-  const [isAcceptanceMode, setIsAcceptanceMode] = useState(false);
+  // 验收测试模式 - 记录触发验收的消息ID
+  const [acceptanceTriggerId, setAcceptanceTriggerId] = useState<string | null>(null);
   
   // 验收弹窗状态
   const [showAcceptanceModal, setShowAcceptanceModal] = useState(false);
@@ -160,13 +160,15 @@ export default function TaskDetail({ task }: TaskDetailProps) {
 
   // 验收测试
   const handleAcceptanceTest = () => {
-    setIsAcceptanceMode(true);
+    const triggerId = String(msgId + 1);
+    setAcceptanceTriggerId(triggerId);
     setMessages(prev => [...prev, { id: String(msgId), role: 'user', content: '请进行验收测试', timestamp: new Date().toLocaleString() }]);
     setMsgId(prev => prev + 1);
     
     setTimeout(() => {
+      const responseId = String(msgId + 1);
       setMessages(prev => [...prev, { 
-        id: String(msgId), 
+        id: responseId, 
         role: 'assistant', 
         content: '验收测试已准备完成。请检查任务执行结果，并选择通过或驳回。',
         timestamp: new Date().toLocaleString() 
@@ -387,8 +389,8 @@ export default function TaskDetail({ task }: TaskDetailProps) {
               <div className={`text-xs mt-1 ${msg.role === 'user' ? 'text-blue-200' : 'text-gray-500'}`}>
                 {msg.timestamp}
               </div>
-              {/* AI消息中的可点击验收按钮 */}
-              {msg.role === 'assistant' && isAcceptanceMode && (
+              {/* AI消息中的可点击验收按钮 - 仅在触发验收测试后的AI回复显示 */}
+              {msg.role === 'assistant' && acceptanceTriggerId && parseInt(msg.id) > parseInt(acceptanceTriggerId) && (
                 <div className="flex gap-2 mt-2 pt-2 border-t border-gray-700">
                   <button 
                     onClick={() => setShowAcceptanceModal(true)}
