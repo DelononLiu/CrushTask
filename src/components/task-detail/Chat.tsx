@@ -28,6 +28,15 @@ export default function Chat({
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Chat title */}
+      <div className="px-3 lg:px-4 py-2 border-b border-gray-800 bg-gray-900/50">
+        <div className="flex items-center gap-2">
+          <span className="text-sm">💬</span>
+          <span className="text-sm font-medium text-gray-300">AI 对话</span>
+        </div>
+      </div>
+      
+      {/* Messages area */}
       <div className="flex-1 overflow-y-auto p-3 lg:p-4 space-y-2 lg:space-y-3">
         {messages.map(msg => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>

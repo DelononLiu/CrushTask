@@ -96,19 +96,16 @@ export default function TaskDetail({ task, viewMode, onBack, parentTasks = [] }:
       {viewMode === 'list' ? (
         <ListView task={task} parentTasks={parentTasks} />
       ) : (
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Chat wrapper with visual distinction */}
-          <div className="flex-1 flex flex-col bg-[#0d0d0d] border-t border-gray-700 rounded-t-lg overflow-hidden">
-            <Chat 
-            messages={messages}
-            input={input}
-            onInputChange={setInput}
-            onSend={() => handleSendWithAction('test')}
-            acceptanceTriggerId={acceptanceTriggerId}
-            onAcceptance={() => setShowAcceptanceModal(true)}
-            onReject={() => setShowAcceptanceModal(true)}
-          />
-          </div>
+        <div className="flex-1 flex flex-col bg-[#0d0d0d] border-t border-gray-700 rounded-t-lg overflow-hidden">
+          <Chat 
+              messages={messages}
+              input={input}
+              onInputChange={setInput}
+              onSend={() => handleSendWithAction('test')}
+              acceptanceTriggerId={acceptanceTriggerId}
+              onAcceptance={() => setShowAcceptanceModal(true)}
+              onReject={() => setShowAcceptanceModal(true)}
+            />
         </div>
       )}
 
