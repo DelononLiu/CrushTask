@@ -127,6 +127,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     setExpandedModules(prev => ({ ...prev, [moduleId]: !prev[moduleId] }));
   };
 
+  // 执行 (/run) - 运行并显示结果
   const handleRun = () => {
     setExecutionLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 开始执行任务...`, `[${new Date().toLocaleTimeString()}] 正在解析任务结构...`]);
     setMessages(prev => [...prev, { id: String(msgId), role: 'user', content: '/run', timestamp: new Date().toLocaleString() }]);
@@ -138,43 +139,60 @@ export default function TaskDetail({ task }: TaskDetailProps) {
     }, 1500);
     
     setTimeout(() => {
-      setMessages(prev => [...prev, { id: String(msgId), role: 'assistant', content: '任务执行完成！请查看结果或进行验收。', timestamp: new Date().toLocaleString() }]);
+      setMessages(prev => [...prev, { 
+        id: String(msgId + 1), 
+        role: 'assistant', 
+        content: '✅ 任务执行完成！\n\n执行结果：\n- 代码生成：成功\n- 构建：成功\n- 执行：完成\n\n可在"结果"中查看详细信息。',
+        timestamp: new Date().toLocaleString() 
+      }]);
       setMsgId(prev => prev + 1);
     }, 1600);
   };
 
+  // 结果 (/result) - 直接显示最近一次执行的结果
   const handleResult = () => {
-    setExecutionLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 正在生成执行结果...`]);
     setMessages(prev => [...prev, { id: String(msgId), role: 'user', content: '/result', timestamp: new Date().toLocaleString() }]);
     setMsgId(prev => prev + 1);
     
-    setTimeout(() => {
-      setExecutionLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 结果已生成`]);
-    }, 1000);
+    const lastLogs = executionLogs.slice(-5);
+    const resultContent = lastLogs.length > 0 
+      ? `📊 最近一次执行结果：\n\n${lastLogs.join('\n')}`
+      : '暂无执行结果，请先执行任务。';
     
     setTimeout(() => {
-      setMessages(prev => [...prev, { id: String(msgId), role: 'assistant', content: '执行结果已生成，可以在下方查看详情。', timestamp: new Date().toLocaleString() }]);
+      setMessages(prev => [...prev, { 
+        id: String(msgId + 1), 
+        role: 'assistant', 
+        content: resultContent,
+        timestamp: new Date().toLocaleString() 
+      }]);
       setMsgId(prev => prev + 1);
-    }, 1100);
+    }, 500);
   };
 
-  // 验收测试
+  // 验收测试 - 执行测试，显示结果，并显示通过/驳回按钮
   const handleAcceptanceTest = () => {
-    const triggerId = String(msgId + 1);
+    const triggerId = String(msgId + 2);
     setAcceptanceTriggerId(triggerId);
     setMessages(prev => [...prev, { id: String(msgId), role: 'user', content: '请进行验收测试', timestamp: new Date().toLocaleString() }]);
     setMsgId(prev => prev + 1);
     
+    // 执行测试
+    setExecutionLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 开始验收测试...`, `[${new Date().toLocaleTimeString()}] 运行测试用例...`]);
+    
     setTimeout(() => {
-      const responseId = String(msgId + 1);
+      setExecutionLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] 测试用例执行完成`, `[${new Date().toLocaleTimeString()}] 验证通过`]);
+    }, 1500);
+    
+    setTimeout(() => {
       setMessages(prev => [...prev, { 
-        id: responseId, 
+        id: triggerId, 
         role: 'assistant', 
-        content: '验收测试已准备完成。请检查任务执行结果，并选择通过或驳回。',
+        content: '🧪 验收测试执行完成\n\n测试结果：\n- 用例执行：成功\n- 验证结果：通过\n- 功能检查：正常\n\n请确认验收结果：',
         timestamp: new Date().toLocaleString() 
       }]);
       setMsgId(prev => prev + 1);
-    }, 800);
+    }, 1600);
   };
 
   const sendMessage = () => {
