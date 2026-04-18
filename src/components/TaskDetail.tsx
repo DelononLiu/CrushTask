@@ -375,77 +375,80 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   // 抽屉式任务控制台
   const renderConsoleDrawer = () => (
     <div className="flex flex-col h-full border-t border-gray-800 bg-[#0a0a0a]">
-      {/* 快捷工具栏 + 最大化按钮 */}
-      <div className="flex items-center gap-2 p-2 border-b border-gray-800 bg-gray-900/50 flex-shrink-0">
-        <div className="flex gap-2 flex-1">
-          <button 
-            onClick={handleRun}
-            className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700"
-          >
-            ▶ 执行任务
-          </button>
-          <button 
-            onClick={handleResult}
-            className="px-3 py-1.5 bg-gray-700 text-white rounded text-sm font-medium hover:bg-gray-600"
-          >
-            📊 查看结果
-          </button>
-          <button 
-            className="px-3 py-1.5 bg-gray-700 text-white rounded text-sm font-medium hover:bg-gray-600"
-          >
-            ✏️ 修改需求
-          </button>
-        </div>
-        <button 
-          onClick={toggleMaximize}
-          className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded"
-          title={consoleState === 'maximized' ? '还原' : '最大化'}
-        >
-          {consoleState === 'maximized' ? '⬜' : '🗗'}
-        </button>
-      </div>
-      
-      {/* 验收操作区 - 仅在执行完成后显示 */}
-      {isExecuted && (
-        <div className="px-3 py-2 border-b border-gray-800 bg-gray-900/30 flex-shrink-0">
-          <div className="flex gap-2">
-            <button className="flex-1 py-2 bg-green-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-green-700">
-              <span>✅</span> 通过
-            </button>
-            <button className="flex-1 py-2 bg-red-600 text-white rounded-lg font-medium flex items-center justify-center gap-2 hover:bg-red-700">
-              <span>❌</span> 驳回
-            </button>
-          </div>
-          <div className="text-center text-xs text-gray-500 mt-1">
-            验收进度: {completedCount}/{totalCount} 已完成
-          </div>
-        </div>
-      )}
-      
-      {/* 内容区 */}
+      {/* 内容区 - 顶部 */}
       <div className="flex-1 overflow-hidden flex flex-col">
         {renderConsoleContent()}
       </div>
       
-      {/* 底部输入框 */}
-      <div className="p-3 border-t border-gray-800 flex-shrink-0">
-        <div className="flex gap-2 items-center">
-          <div className="text-xs text-gray-500 whitespace-nowrap">支持: /run /result</div>
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
-            placeholder="输入指令或消息..."
-            className="flex-1 bg-gray-800 text-white px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
+      {/* 输入框 + 工具栏 - 底部 */}
+      <div className="flex-shrink-0">
+        {/* 底部输入框 */}
+        <div className="p-2 border-t border-gray-800">
+          <div className="flex gap-2 items-center">
+            <div className="text-xs text-gray-500 whitespace-nowrap">支持: /run /result</div>
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+              placeholder="输入指令或消息..."
+              className="flex-1 bg-gray-800 text-white px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+            <button 
+              onClick={sendMessage}
+              className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm"
+            >
+              发送
+            </button>
+          </div>
+        </div>
+        
+        {/* 快捷工具栏 + 最大化按钮 */}
+        <div className="flex items-center gap-2 p-2 border-t border-gray-800 bg-gray-900/50">
+          <div className="flex gap-2 flex-1">
+            <button 
+              onClick={handleRun}
+              className="px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700"
+            >
+              ▶ 执行任务
+            </button>
+            <button 
+              onClick={handleResult}
+              className="px-2 py-1 bg-gray-700 text-white rounded text-xs font-medium hover:bg-gray-600"
+            >
+              📊 查看结果
+            </button>
+            <button 
+              className="px-2 py-1 bg-gray-700 text-white rounded text-xs font-medium hover:bg-gray-600"
+            >
+              ✏️ 修改需求
+            </button>
+          </div>
           <button 
-            onClick={sendMessage}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm"
+            onClick={toggleMaximize}
+            className="p-1 text-gray-400 hover:text-white hover:bg-gray-700 rounded text-xs"
+            title={consoleState === 'maximized' ? '还原' : '最大化'}
           >
-            发送
+            {consoleState === 'maximized' ? '⬜' : '🗗'}
           </button>
         </div>
+        
+        {/* 验收操作区 - 仅在执行完成后显示 */}
+        {isExecuted && (
+          <div className="px-3 py-2 border-t border-gray-800 bg-gray-900/30">
+            <div className="flex gap-2">
+              <button className="flex-1 py-1.5 bg-green-600 text-white rounded text-sm font-medium flex items-center justify-center gap-1 hover:bg-green-700">
+                <span>✅</span> 通过
+              </button>
+              <button className="flex-1 py-1.5 bg-red-600 text-white rounded text-sm font-medium flex items-center justify-center gap-1 hover:bg-red-700">
+                <span>❌</span> 驳回
+              </button>
+            </div>
+            <div className="text-center text-xs text-gray-500 mt-1">
+              验收进度: {completedCount}/{totalCount} 已完成
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
