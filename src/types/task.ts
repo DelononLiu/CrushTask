@@ -291,6 +291,88 @@ export const initialTasks: Task[] = [
             children: []
           }
         ]
+      },
+      {
+        id: 'cat-improve',
+        title: '产品改进',
+        module: 'CrushTask',
+        subFeature: '产品改进',
+        status: 'in_progress',
+        priority: 'high',
+        goal: '持续优化产品体验',
+        input: '',
+        output: '',
+        constraints: '',
+        acceptanceCriteria: [],
+        context: {},
+        aiMessages: [],
+        expanded: true,
+        nodeType: 'category',
+        children: [
+          {
+            id: 'task-edit',
+            title: '实现任务编辑功能',
+            module: 'CrushTask',
+            subFeature: '产品改进',
+            status: 'pending',
+            priority: 'high',
+            goal: '支持编辑任务标题、目标、状态等信息',
+            input: '任务数据',
+            output: '更新的任务数据',
+            constraints: '点击编辑按钮弹出编辑面板',
+            acceptanceCriteria: ['编辑按钮可用', '弹出编辑面板', '保存后数据更新'],
+            context: {
+              project: 'CrushTask',
+              techStack: ['React']
+            },
+            aiMessages: [],
+            nodeType: 'task',
+            fullPath: 'CrushTask → 产品改进 → 实现任务编辑功能',
+            children: []
+          },
+          {
+            id: 'task-persist',
+            title: '实现数据持久化',
+            module: 'CrushTask',
+            subFeature: '产品改进',
+            status: 'pending',
+            priority: 'high',
+            goal: '使用localStorage持久化任务数据',
+            input: '任务数据',
+            output: '持久化的任务状态',
+            constraints: '页面刷新后数据保持',
+            acceptanceCriteria: ['数据保存成功', '刷新后数据恢复'],
+            context: {
+              project: 'CrushTask',
+              techStack: ['localStorage', 'React']
+            },
+            aiMessages: [],
+            nodeType: 'task',
+            fullPath: 'CrushTask → 产品改进 → 实现数据持久化',
+            children: []
+          },
+          {
+            id: 'task-full-acceptance',
+            title: '显示完整验收标准',
+            module: 'CrushTask',
+            subFeature: '产品改进',
+            status: 'pending',
+            priority: 'medium',
+            goal: '验收标准完整显示，不限制数量',
+            input: '验收标准数据',
+            output: '完整展示',
+            constraints: 'Header区域显示更多验收项',
+            acceptanceCriteria: ['显示所有验收项', '可滚动查看'],
+            context: {
+              project: 'CrushTask',
+              techStack: ['React']
+            },
+            aiMessages: [],
+            nodeType: 'task',
+            fullPath: 'CrushTask → 产品改进 → 显示完整验收标准',
+            children: []
+          }
+        ]
       }
     ]
   }
