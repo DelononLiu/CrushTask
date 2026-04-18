@@ -64,6 +64,7 @@ function isAtomicTask(task: Task): boolean {
 export default function Home() {
   const [modules] = useState(() => expandAllModules(initialTasks));
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [parentTaskId, setParentTaskId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'detail'>('list');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
@@ -75,9 +76,12 @@ export default function Home() {
     ? viewMode 
     : (selectedTask && isAtomicTask(selectedTask) ? 'detail' : 'list');
 
-  const childTasks = selectedTask ? collectChildTasks(modules, selectedTask.id) : [];
+  const childTasks = parentTaskId ? collectChildTasks(modules, parentTaskId) : (selectedTask ? collectChildTasks(modules, selectedTask.id) : []);
 
   const handleSelectTask = (task: Task) => {
+    if (selectedTaskId) {
+      setParentTaskId(selectedTaskId);
+    }
     setSelectedTaskId(task.id);
     if (isAtomicTask(task)) {
       setViewMode('detail');
@@ -88,8 +92,15 @@ export default function Home() {
   };
 
   const handleBack = () => {
-    setSelectedTaskId(null);
-    setViewMode('list');
+    if (parentTaskId) {
+      const parentTask = findTaskById(modules, parentTaskId);
+      setSelectedTaskId(parentTaskId);
+      setViewMode(parentTask && isAtomicTask(parentTask) ? 'detail' : 'list');
+      setParentTaskId(null);
+    } else {
+      setSelectedTaskId(null);
+      setViewMode('list');
+    }
   };
 
   const toggleSidebar = () => {
