@@ -91,6 +91,9 @@ export default function TaskDetail({ task }: TaskDetailProps) {
   // 任务执行状态
   const [isExecuted, setIsExecuted] = useState(false);
   
+  // 验收测试模式
+  const [isAcceptanceMode, setIsAcceptanceMode] = useState(false);
+  
   // 验收弹窗状态
   const [showAcceptanceModal, setShowAcceptanceModal] = useState(false);
   
@@ -153,6 +156,23 @@ export default function TaskDetail({ task }: TaskDetailProps) {
       setMessages(prev => [...prev, { id: String(msgId), role: 'assistant', content: '执行结果已生成，可以在下方查看详情。', timestamp: new Date().toLocaleString() }]);
       setMsgId(prev => prev + 1);
     }, 1100);
+  };
+
+  // 验收测试
+  const handleAcceptanceTest = () => {
+    setIsAcceptanceMode(true);
+    setMessages(prev => [...prev, { id: String(msgId), role: 'user', content: '请进行验收测试', timestamp: new Date().toLocaleString() }]);
+    setMsgId(prev => prev + 1);
+    
+    setTimeout(() => {
+      setMessages(prev => [...prev, { 
+        id: String(msgId), 
+        role: 'assistant', 
+        content: '验收测试已准备完成。请检查任务执行结果，并选择通过或驳回。',
+        timestamp: new Date().toLocaleString() 
+      }]);
+      setMsgId(prev => prev + 1);
+    }, 800);
   };
 
   const sendMessage = () => {
@@ -368,7 +388,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
                 {msg.timestamp}
               </div>
               {/* AI消息中的可点击验收按钮 */}
-              {msg.role === 'assistant' && isExecuted && (
+              {msg.role === 'assistant' && isAcceptanceMode && (
                 <div className="flex gap-2 mt-2 pt-2 border-t border-gray-700">
                   <button 
                     onClick={() => setShowAcceptanceModal(true)}
@@ -406,21 +426,22 @@ export default function TaskDetail({ task }: TaskDetailProps) {
         <div className="flex items-center gap-2 p-2 border-t border-gray-800 bg-gray-900/50">
           <div className="flex gap-2 flex-1">
             <button 
-              onClick={handleRun}
+              onClick={handleAcceptanceTest}
               className="px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700"
             >
-              ▶ 执行任务
+              🧪 验收测试
+            </button>
+            <button 
+              onClick={handleRun}
+              className="px-2 py-1 bg-gray-700 text-white rounded text-xs font-medium hover:bg-gray-600"
+            >
+              ▶ 执行 (/run)
             </button>
             <button 
               onClick={handleResult}
               className="px-2 py-1 bg-gray-700 text-white rounded text-xs font-medium hover:bg-gray-600"
             >
-              📊 查看结果
-            </button>
-            <button 
-              className="px-2 py-1 bg-gray-700 text-white rounded text-xs font-medium hover:bg-gray-600"
-            >
-              ✏️ 修改需求
+              📊 结果 (/result)
             </button>
           </div>
           <button 
