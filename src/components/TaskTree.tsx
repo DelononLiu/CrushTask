@@ -65,12 +65,10 @@ export default function TaskTree({ modules, selectedTaskId, onSelectTask }: Task
     const hasChildren = task.children && task.children.length > 0;
     const isTask = level === NODE_LEVELS.TASK || task.nodeType === 'task';
     const isSelected = task.id === selectedTaskId;
-    const canClick = isTask;
+    const canClick = true; // 所有节点都可以点击
 
     const handleClick = () => {
-      if (canClick) {
-        onSelectTask(task);
-      }
+      onSelectTask(task);
     };
 
     const handleToggle = (e: React.MouseEvent) => {
@@ -88,7 +86,7 @@ export default function TaskTree({ modules, selectedTaskId, onSelectTask }: Task
                 : 'border-l-2 border-transparent'
           }`}
           style={{ paddingLeft: `${12 + level * 16}px` }}
-          onClick={canClick ? handleClick : handleToggle}
+          onClick={handleClick}
         >
           {hasChildren && (
             <span className={`text-xs transition-transform ${task.expanded ? 'rotate-90' : ''}`}>
