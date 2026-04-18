@@ -326,63 +326,42 @@ export default function TaskDetail({ task, viewMode, onBack, parentTasks = [] }:
     </div>
   );
 
-  // 详情视图 - 主布局
+  // 详情视图 - 主布局（上下布局：30%任务信息 + 70%对话框）
   const renderDetailView = () => (
     <div className="flex-1 flex flex-col overflow-hidden">
-      {/* 顶部卡片区域（双状态） */}
-      <div className={`${isOperationMode ? 'h-[15%] min-h-[40px]' : 'h-[35%]'} flex-shrink-0 border-b border-gray-800 transition-all duration-300 p-2`}>
-        {isOperationMode ? (
-          <div className="h-full flex items-center gap-2">
-            {flowNodes.map((node, index) => (
-              <div key={node.id} className="flex items-center">
-                <button onClick={() => handleFlowNodeClick(node.id)} className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${activeFlowNode === node.id ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}>
-                  {node.label}
-                </button>
-                {index < flowNodes.length - 1 && <span className="mx-1 text-gray-500">→</span>}
-              </div>
-            ))}
-            <button onClick={handleBackToOverview} className="ml-4 text-xs text-gray-500 hover:text-gray-300 flex items-center gap-1">
-              <span>←</span> 返回
-            </button>
-          </div>
-        ) : (
-          <div className="h-full grid grid-cols-4 gap-2 justify-items-center items-center">
-            {flowNodes.map((node) => (
-              <div key={node.id} onClick={() => handleFlowNodeClick(node.id)} className={`rounded-lg border cursor-pointer transition-all hover:bg-gray-800 p-3 flex flex-col justify-between ${activeFlowNode === node.id ? 'border-blue-500 bg-blue-500/10' : 'border-gray-700 bg-gray-800/30'}`}>
-                <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`w-2 h-2 rounded-full ${activeFlowNode === node.id ? 'bg-blue-500' : 'bg-gray-600'}`}></span>
-                    <span className="text-sm font-medium text-gray-300">{node.label}</span>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {node.id === 'spec' && '任务规格、目标、输入输出、验收标准'}
-                    {node.id === 'code' && 'AI对话交互、代码生成、方案讨论'}
-                    {node.id === 'run' && '执行日志、编译构建、运行结果'}
-                    {node.id === 'review' && '经验总结、知识沉淀、结果归档'}
-                  </div>
-                </div>
-                <div className="text-[10px] text-blue-400 mt-2">点击进入 →</div>
-              </div>
-            ))}
-          </div>
-        )}
+      {/* 上面30%：任务信息 */}
+      <div className="h-[30%] min-h-[150px] flex-shrink-0 border-b border-gray-800 overflow-y-auto">
+        {renderSpec()}
       </div>
 
-      {/* 内容区（动态切换） */}
-      <div className="flex-1 overflow-hidden flex flex-col">
-        <div className="flex-1 overflow-y-auto">
-          {isOperationMode ? (
-            <>
-              {activeFlowNode === 'spec' && renderSpec()}
-              {activeFlowNode === 'code' && renderCode()}
-              {activeFlowNode === 'run' && renderRun()}
-              {activeFlowNode === 'review' && renderReview()}
-            </>
-          ) : (
-            <div className="flex items-center justify-center h-full text-gray-500 text-sm">
-              点击上方卡片进入对应操作区
+      {/* 下面70%：AI对话框 */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {messages.map(msg => (
+            <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`max-w-[85%] p-3 rounded-xl text-sm ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-200'}`}>
+                {msg.role === 'assistant' && <div className="flex items-center gap-1 mb-1 text-blue-400 text-xs"><span>🤖</span> <span>AI助手</span></div>}
+                {msg.role === 'user' && <div className="flex items-center gap-1 mb-1 text-blue-200 text-xs"><span>👤</span> <span>用户</span></div>}
+                <div>{msg.content}</div>
+                <div className={`text-xs mt-1 ${msg.role === 'user' ? 'text-blue-200' : 'text-gray-500'} text-right`}>{msg.timestamp}</div>
+                {msg.role === 'assistant' && acceptanceTriggerId && msg.id === acceptanceTriggerId && (
+                  <div className="flex gap-2 mt-2 pt-2 border-t border-gray-700">
+                    <button onClick={() => setShowAcceptanceModal(true)} className="flex-1 py-1 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700">✅ 通过</button>
+                    <button onClick={() => setShowAcceptanceModal(true)} className="flex-1 py-1 bg-red-600 text-white rounded text-xs font-medium hover:bg-red-700">❌ 驳回</button>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
+        {/* 底部输入框 */}
+        <div className="p-2 border-t border-gray-800">
+          <div className="flex gap-2 items-center">
+            <div className="text-xs text-gray-500 whitespace-nowrap">支持: /run</div>
+            <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && sendMessage()} placeholder="输入指令或消息..." className="flex-1 bg-gray-800 text-white px-3 py-1.5 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" />
+            <button onClick={sendMessage} className="px-3 py-1.5 bg-blue-600 text-white rounded text-sm">发送</button>
+          </div>
         </div>
       </div>
     </div>
