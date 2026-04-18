@@ -15,23 +15,49 @@ const statusColors: Record<string, string> = {
   rejected: 'bg-red-500',
 };
 
+const NODE_LEVELS = {
+  PROJECT: 0,
+  MODULE: 1,
+  SUBFEATURE: 2,
+  TASK: 3,
+};
+
+const levelIcons: Record<number, string> = {
+  [NODE_LEVELS.PROJECT]: '📦',
+  [NODE_LEVELS.MODULE]: '🧩',
+  [NODE_LEVELS.SUBFEATURE]: '🔧',
+  [NODE_LEVELS.TASK]: '✅',
+};
+
 export default function TaskTree({ modules, selectedTaskId, onSelectTask }: TaskTreeProps) {
   const renderTask = (task: Task, level: number = 0) => {
     const hasChildren = task.children && task.children.length > 0;
-    const isModule = level === 0;
-    const isSubFeature = level === 1;
+    const isTask = level === NODE_LEVELS.TASK;
     const isSelected = task.id === selectedTaskId;
+    const canClick = isTask;
+
+    const handleClick = () => {
+      if (canClick) {
+        onSelectTask(task);
+      }
+    };
+
+    const handleToggle = (e: React.MouseEvent) => {
+      e.stopPropagation();
+    };
 
     return (
       <div key={task.id}>
         <div
           className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors ${
-            isSelected 
+            isSelected && isTask
               ? 'bg-blue-600/30 border-l-2 border-blue-500' 
-              : 'hover:bg-gray-800/50 border-l-2 border-transparent'
+              : canClick
+                ? 'hover:bg-gray-800/50 border-l-2 border-transparent'
+                : 'border-l-2 border-transparent'
           }`}
           style={{ paddingLeft: `${12 + level * 16}px` }}
-          onClick={() => onSelectTask(task)}
+          onClick={canClick ? handleClick : handleToggle}
         >
           {hasChildren && (
             <span className={`text-xs transition-transform ${task.expanded ? 'rotate-90' : ''}`}>
@@ -43,14 +69,18 @@ export default function TaskTree({ modules, selectedTaskId, onSelectTask }: Task
           <span className={`w-2 h-2 rounded-full ${statusColors[task.status]}`} />
           
           <span className={`text-sm truncate ${
-            isModule ? 'text-white font-medium' :
-            isSubFeature ? 'text-gray-300' :
-            isSelected ? 'text-blue-300' : 'text-gray-400'
+            isTask
+              ? isSelected 
+                ? 'text-[#165DFF] font-medium' 
+                : 'text-[#165DFF]'
+              : level === NODE_LEVELS.PROJECT || level === NODE_LEVELS.MODULE
+                ? 'text-white font-medium'
+                : 'text-gray-400'
           }`}>
-            {task.title}
+            {levelIcons[level]} {task.title}
           </span>
           
-          {isSelected && <span className="ml-auto text-blue-400">▶</span>}
+          {isSelected && isTask && <span className="ml-auto text-[#165DFF]">▶</span>}
         </div>
 
         {hasChildren && task.expanded && (
@@ -66,12 +96,12 @@ export default function TaskTree({ modules, selectedTaskId, onSelectTask }: Task
     <div className="w-64 h-full bg-gray-900 border-r border-gray-800 flex flex-col">
       <div className="p-4 border-b border-gray-800">
         <h2 className="text-lg font-semibold text-white">任务树</h2>
-        <p className="text-xs text-gray-500">CrushTask 产品功能结构</p>
+        <p className="text-xs text-gray-500">产品功能结构</p>
       </div>
       <div className="flex-1 overflow-y-auto py-2">
         {modules.map(module => (
           <div key={module.id}>
-            {renderTask(module, 0)}
+            {renderTask(module, NODE_LEVELS.PROJECT)}
           </div>
         ))}
       </div>
