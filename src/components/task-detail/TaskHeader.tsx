@@ -52,10 +52,10 @@ export default function TaskHeader({ task, viewMode, onBack, checkedItems, onTog
       <div className="flex items-center justify-between mb-1">
         <button onClick={onBack} className="text-gray-400 hover:text-white text-xs">← 返回</button>
         <div className="flex items-center gap-1.5">
-          <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium border ${statusColors[task.status]}`}>{statusLabels[task.status]}</span>
-          <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-500/20 text-gray-400 border border-gray-500/50">{priorityLabels[task.priority]}</span>
+          <span className={`px-1.5 py-0.5 text-[10px] font-medium border ${statusColors[task.status]}`}>{statusLabels[task.status]}</span>
+          <span className="px-1.5 py-0.5 text-[10px] font-medium bg-gray-500/20 text-gray-400 border border-gray-500/50">{priorityLabels[task.priority]}</span>
           {onEdit && (
-            <button onClick={onEdit} className="px-1.5 py-0.5 rounded text-[10px] bg-gray-700 text-gray-300 hover:bg-gray-600">✏️ 编辑</button>
+            <button onClick={onEdit} className="px-1.5 py-0.5 text-[10px] bg-gray-700 text-gray-300 hover:bg-gray-600">✏️ 编辑</button>
           )}
         </div>
       </div>
@@ -86,7 +86,7 @@ export default function TaskHeader({ task, viewMode, onBack, checkedItems, onTog
               <span 
                 key={index} 
                 onClick={() => onToggleCheck(index)}
-                className={`px-1 py-0.5 rounded text-[9px] cursor-pointer ${
+                className={`px-1 py-0.5 text-[9px] cursor-pointer ${
                   checkedItems[index] ? 'bg-green-600/20 text-green-400 line-through' : 'bg-gray-700 text-gray-400'
                 }`}
               >

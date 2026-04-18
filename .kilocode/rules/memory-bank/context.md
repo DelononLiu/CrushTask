@@ -18,6 +18,7 @@
 - [x] 视图切换逻辑：点击父节点显示列表，点击原子任务显示详情
 - [x] typecheck和lint通过
 - [x] 添加全局Header：固定三横菜单按钮在左上角，sidebar从header下方滑出
+- [x] 详情页去除圆角：Chat消息、按钮、输入框等移除rounded样式
 
 ## Current Structure
 
