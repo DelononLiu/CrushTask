@@ -26,9 +26,7 @@ const NODE_LEVELS = {
 function collectAllTasks(tasks: Task[]): Task[] {
   const result: Task[] = [];
   for (const task of tasks) {
-    if (task.nodeType === 'task') {
-      result.push(task);
-    }
+    result.push(task);
     if (task.children && task.children.length > 0) {
       result.push(...collectAllTasks(task.children));
     }
@@ -36,9 +34,9 @@ function collectAllTasks(tasks: Task[]): Task[] {
   return result;
 }
 
-function filterTasks(tasks: Task[]): Task[] {
+function filterInProgressTasks(tasks: Task[]): Task[] {
   const allTasks = collectAllTasks(tasks);
-  return allTasks.filter(t => t.status === 'in_progress');
+  return allTasks.filter(t => t.status === 'in_progress' && t.nodeType !== 'root');
 }
 
 const getNodeIcon = (task: Task, level: number): string => {
@@ -61,7 +59,7 @@ const getNodeIcon = (task: Task, level: number): string => {
 
 export default function TaskTree({ modules, selectedTaskId, onSelectTask }: TaskTreeProps) {
   const productRoot = modules.find(m => m.title === 'CrushTask');
-  const filteredTasks = useMemo(() => filterTasks(modules), [modules]);
+  const filteredTasks = useMemo(() => filterInProgressTasks(modules), [modules]);
 
   const renderTask = (task: Task, level: number = 0) => {
     const hasChildren = task.children && task.children.length > 0;
@@ -150,8 +148,6 @@ export default function TaskTree({ modules, selectedTaskId, onSelectTask }: Task
   };
 
   const renderInProgressRoot = () => {
-    if (filteredTasks.length === 0) return null;
-
     return (
       <div>
         <div
@@ -162,9 +158,13 @@ export default function TaskTree({ modules, selectedTaskId, onSelectTask }: Task
           <span className="w-2 h-2 rounded-full bg-blue-500" />
           <span className="text-sm text-white font-medium">🚀 进行中</span>
         </div>
-        <div className="border-l border-gray-700 ml-3">
-          {filteredTasks.map((task: Task) => renderFilteredTask(task, 1))}
-        </div>
+        {filteredTasks.length > 0 ? (
+          <div className="border-l border-gray-700 ml-3">
+            {filteredTasks.map((task: Task) => renderFilteredTask(task, 1))}
+          </div>
+        ) : (
+          <div className="text-xs text-gray-500 pl-6 py-1">暂无进行中的任务</div>
+        )}
       </div>
     );
   };
@@ -178,7 +178,7 @@ export default function TaskTree({ modules, selectedTaskId, onSelectTask }: Task
       
       <div className="flex-1 overflow-y-auto py-2">
         {renderInProgressRoot()}
-        {filteredTasks.length > 0 && productRoot && <div className="border-t border-gray-800 my-2" />}
+        {productRoot && <div className="border-t border-gray-800 my-2" />}
         {productRoot && renderTask(productRoot, NODE_LEVELS.PROJECT)}
       </div>
     </div>
