@@ -43,7 +43,9 @@ function filterTasks(tasks: Task[]): Task[] {
 
 const getNodeIcon = (task: Task, level: number): string => {
   if (task.nodeType === 'root') {
-    return task.title === 'CrushTask' ? '📦' : '📋';
+    if (task.title === 'CrushTask') return '📦';
+    if (task.title === '🚀 进行中') return '🚀';
+    return '📋';
   }
   if (task.nodeType === 'category' || level === NODE_LEVELS.MODULE) {
     return '📂';
@@ -123,7 +125,7 @@ export default function TaskTree({ modules, selectedTaskId, onSelectTask }: Task
     );
   };
 
-  const renderFilteredTask = (task: Task) => {
+  const renderFilteredTask = (task: Task, level: number = 0) => {
     const isSelected = task.id === selectedTaskId;
     
     return (
@@ -134,8 +136,10 @@ export default function TaskTree({ modules, selectedTaskId, onSelectTask }: Task
             ? 'bg-blue-600/30 border-l-2 border-blue-500' 
             : 'hover:bg-gray-800/50 border-l-2 border-transparent'
         }`}
+        style={{ paddingLeft: `${12 + level * 16}px` }}
         onClick={() => onSelectTask(task)}
       >
+        <span className="w-4" />
         <span className={`w-2 h-2 rounded-full ${statusColors[task.status]}`} />
         <span className={`text-sm truncate ${isSelected ? 'text-[#165DFF] font-medium' : 'text-[#165DFF]'}`}>
           📝 {task.title}
@@ -145,16 +149,21 @@ export default function TaskTree({ modules, selectedTaskId, onSelectTask }: Task
     );
   };
 
-  const renderInProgressSection = () => {
+  const renderInProgressRoot = () => {
     if (filteredTasks.length === 0) return null;
-    
+
     return (
-      <div className="border-b border-gray-800">
-        <div className="px-3 py-2 text-xs font-medium text-gray-400">
-          🚀 进行中
+      <div>
+        <div
+          className="flex items-center gap-2 px-3 py-2 border-l-2 border-transparent hover:bg-gray-800/50 cursor-pointer"
+          style={{ paddingLeft: '12px' }}
+        >
+          <span className="text-xs">▶</span>
+          <span className="w-2 h-2 rounded-full bg-blue-500" />
+          <span className="text-sm text-white font-medium">🚀 进行中</span>
         </div>
         <div>
-          {filteredTasks.map((task: Task) => renderFilteredTask(task))}
+          {filteredTasks.map((task: Task) => renderFilteredTask(task, 1))}
         </div>
       </div>
     );
@@ -167,11 +176,8 @@ export default function TaskTree({ modules, selectedTaskId, onSelectTask }: Task
         <p className="text-xs text-gray-500">产品功能结构</p>
       </div>
       
-      {/* 状态视图：进行中 */}
-      {renderInProgressSection()}
-      
-      {/* 产品主表 */}
       <div className="flex-1 overflow-y-auto py-2">
+        {renderInProgressRoot()}
         {productRoot && renderTask(productRoot, NODE_LEVELS.PROJECT)}
       </div>
     </div>
