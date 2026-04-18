@@ -26,7 +26,15 @@ const levelIcons: Record<number, string> = {
   [NODE_LEVELS.PROJECT]: '📦',
   [NODE_LEVELS.MODULE]: '🧩',
   [NODE_LEVELS.SUBFEATURE]: '🔧',
-  [NODE_LEVELS.TASK]: '✅',
+  [NODE_LEVELS.TASK]: '', // Will be set dynamically based on status
+};
+
+const getTaskIcon = (task: Task, level: number): string => {
+  if (level !== NODE_LEVELS.TASK) {
+    return levelIcons[level];
+  }
+  // 原子任务：根据状态显示图标
+  return task.status === 'completed' ? '✅' : '📝';
 };
 
 export default function TaskTree({ modules, selectedTaskId, onSelectTask }: TaskTreeProps) {
@@ -77,7 +85,7 @@ export default function TaskTree({ modules, selectedTaskId, onSelectTask }: Task
                 ? 'text-white font-medium'
                 : 'text-gray-400'
           }`}>
-            {levelIcons[level]} {task.title}
+            {getTaskIcon(task, level)} {task.title}
           </span>
           
           {isSelected && isTask && <span className="ml-auto text-[#165DFF]">▶</span>}
