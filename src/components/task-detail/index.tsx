@@ -97,8 +97,9 @@ export default function TaskDetail({ task, viewMode, onBack, parentTasks = [] }:
         <ListView task={task} parentTasks={parentTasks} />
       ) : (
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Chat takes remaining space with fixed input at bottom */}
-          <Chat 
+          {/* Chat wrapper with visual distinction */}
+          <div className="flex-1 flex flex-col bg-[#0d0d0d] border-t border-gray-700 rounded-t-lg overflow-hidden">
+            <Chat 
             messages={messages}
             input={input}
             onInputChange={setInput}
@@ -107,6 +108,7 @@ export default function TaskDetail({ task, viewMode, onBack, parentTasks = [] }:
             onAcceptance={() => setShowAcceptanceModal(true)}
             onReject={() => setShowAcceptanceModal(true)}
           />
+          </div>
         </div>
       )}
 
