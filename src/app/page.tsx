@@ -88,6 +88,7 @@ export default function Home() {
   };
 
   const handleBack = () => {
+    setSelectedTaskId(null);
     setViewMode('list');
   };
 
