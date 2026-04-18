@@ -348,7 +348,7 @@ export default function TaskDetail({ task }: TaskDetailProps) {
             </div>
           ) : (
             // 概览模式：4列完整卡片
-            <div className="h-full grid grid-cols-4 gap-2 justify-items-center">
+            <div className="h-full grid grid-cols-4 gap-2 justify-items-center items-center">
               {flowNodes.map((node) => (
                 <div 
                   key={node.id} 
