@@ -162,7 +162,7 @@ export default function TaskTree({ modules, selectedTaskId, onSelectTask }: Task
           <span className="w-2 h-2 rounded-full bg-blue-500" />
           <span className="text-sm text-white font-medium">🚀 进行中</span>
         </div>
-        <div>
+        <div className="border-l border-gray-700 ml-3">
           {filteredTasks.map((task: Task) => renderFilteredTask(task, 1))}
         </div>
       </div>
@@ -178,6 +178,7 @@ export default function TaskTree({ modules, selectedTaskId, onSelectTask }: Task
       
       <div className="flex-1 overflow-y-auto py-2">
         {renderInProgressRoot()}
+        {filteredTasks.length > 0 && productRoot && <div className="border-t border-gray-800 my-2" />}
         {productRoot && renderTask(productRoot, NODE_LEVELS.PROJECT)}
       </div>
     </div>
