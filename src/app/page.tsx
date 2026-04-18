@@ -126,7 +126,7 @@ export default function Home() {
       </header>
 
       {/* Main area */}
-      <div className="flex-1 flex relative overflow-hidden">
+      <div className="flex-1 flex overflow-hidden">
         {/* Mobile overlay */}
         {sidebarOpen && (
           <div 
@@ -135,11 +135,9 @@ export default function Home() {
           />
         )}
 
-        {/* Sidebar - slides from under header */}
+        {/* Sidebar - hidden on mobile, visible on desktop */}
         <div className={`
-          absolute lg:relative z-40 transition-transform duration-300
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-          w-64 top-12 bottom-0
+          hidden lg:block h-full
         `}>
           <TaskTree 
             modules={modules} 
@@ -147,6 +145,17 @@ export default function Home() {
             onSelectTask={handleSelectTask}
           />
         </div>
+
+        {/* Mobile sidebar drawer */}
+        {sidebarOpen && (
+          <div className="fixed lg:hidden inset-0 top-12 z-40">
+            <TaskTree 
+              modules={modules} 
+              selectedTaskId={selectedTaskId || selectedTask.id}
+              onSelectTask={handleSelectTask}
+            />
+          </div>
+        )}
 
         {/* Main content area */}
         <div className="flex-1 overflow-hidden">
