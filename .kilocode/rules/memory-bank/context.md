@@ -26,6 +26,11 @@
 - [x] 增加输入框高度
 - [x] 更新示例数据：原子任务标题改为动词开头（如"实现左侧产品树"）
 - [x] 更新PRD至v1.5：全局Header、单行Header详情、无圆角、输入框高度、双击卡片
+- [x] 抽离可复用组件到 components-core：为VSCode插件版本做准备
+- [x] 创建 components-core/types：Task, AIMessage 等类型定义
+- [x] 创建 components-core/task-tree：TreeNode 组件
+- [x] 创建 components-core/task-detail：TaskDetail, TaskHeader, Chat 等组件
+- [x] 添加 VSCode 插件任务到示例数据
 
 ## Current Structure
 

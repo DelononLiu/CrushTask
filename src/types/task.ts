@@ -1,42 +1,7 @@
-export interface AIMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: string;
-}
+// Re-export from components-core for shared types
+import { Task, AIMessage } from '@/components-core/types';
 
-export interface TaskContext {
-  project?: string;
-  techStack?: string[];
-  relatedFiles?: string[];
-  dependentTasks?: string[];
-}
-
-export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'rejected';
-export type TaskPriority = 'low' | 'medium' | 'high';
-
-export interface Task {
-  id: string;
-  title: string;
-  module: string;
-  subFeature: string;
-  status: TaskStatus;
-  priority: TaskPriority;
-  
-  goal: string;
-  input: string;
-  output: string;
-  constraints: string;
-  acceptanceCriteria: string[];
-  
-  context: TaskContext;
-  aiMessages: AIMessage[];
-  children: Task[];
-  expanded?: boolean;
-  
-  nodeType?: 'root' | 'category' | 'task';
-  fullPath?: string;
-}
+export type { Task, AIMessage } from '@/components-core/types';
 
 export const initialTasks: Task[] = [
   {
@@ -370,6 +335,46 @@ export const initialTasks: Task[] = [
             aiMessages: [],
             nodeType: 'task',
             fullPath: 'CrushTask → 产品改进 → 显示完整验收标准',
+            children: []
+          }
+        ]
+      },
+      {
+        id: 'cat-vscode',
+        title: 'VSCode插件',
+        module: 'CrushTask',
+        subFeature: 'VSCode插件',
+        status: 'pending',
+        priority: 'medium',
+        goal: '开发VSCode插件版本',
+        input: '',
+        output: '',
+        constraints: '',
+        acceptanceCriteria: [],
+        context: {},
+        aiMessages: [],
+        expanded: false,
+        nodeType: 'category',
+        children: [
+          {
+            id: 'task-vscode-arch',
+            title: '设计VSCode插件架构',
+            module: 'CrushTask',
+            subFeature: 'VSCode插件',
+            status: 'pending',
+            priority: 'medium',
+            goal: '复用components-core，适配VSCode API',
+            input: 'components-core组件',
+            output: 'VSCode插件代码',
+            constraints: '保持核心逻辑不变',
+            acceptanceCriteria: ['架构设计完成', '组件复用验证'],
+            context: {
+              project: 'CrushTask',
+              techStack: ['VSCode API', 'TypeScript']
+            },
+            aiMessages: [],
+            nodeType: 'task',
+            fullPath: 'CrushTask → VSCode插件 → 设计VSCode插件架构',
             children: []
           }
         ]

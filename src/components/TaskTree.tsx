@@ -1,7 +1,7 @@
 'use client';
 
 import { Task } from '@/types/task';
-import TreeNode from './task-tree/TreeNode';
+import { TreeNode } from '@/components-core/task-tree';
 
 interface TaskTreeProps {
   modules: Task[];
