@@ -6,6 +6,8 @@ interface TaskHeaderProps {
   checkedItems: Record<number, boolean>;
   onToggleCheck: (index: number) => void;
   onEdit?: () => void;
+  onDelete?: () => void;
+  onAcceptance?: () => void;
 }
 
 const statusLabels: Record<string, string> = {
@@ -28,7 +30,7 @@ const priorityLabels: Record<string, string> = {
   high: '高',
 };
 
-export default function TaskHeader({ task, viewMode, checkedItems, onToggleCheck, onEdit }: TaskHeaderProps) {
+export default function TaskHeader({ task, viewMode, checkedItems, onToggleCheck, onEdit, onDelete, onAcceptance }: TaskHeaderProps) {
   if (viewMode === 'list') {
     return (
       <div className="p-3 lg:p-4 border-b border-gray-800 bg-gradient-to-r from-gray-900 to-gray-800">
@@ -47,15 +49,24 @@ export default function TaskHeader({ task, viewMode, checkedItems, onToggleCheck
 
   return (
     <div className="p-2 lg:p-3 border-b border-gray-800 bg-gradient-to-r from-gray-900 to-gray-800">
-      {/* Single row: title, status, priority, divider, edit */}
-      <div className="flex items-center gap-1.5">
-        <h1 className="text-sm lg:text-lg font-semibold text-white">{task.title}</h1>
-        <span className={`px-1.5 py-0.5 text-[10px] font-medium border ${statusColors[task.status]}`}>{statusLabels[task.status]}</span>
-        <span className="px-1.5 py-0.5 text-[10px] font-medium bg-gray-500/20 text-gray-400 border border-gray-500/50">{priorityLabels[task.priority]}</span>
-        <span className="h-4 w-px bg-gray-600 mx-1"></span>
-        {onEdit && (
-          <button onClick={onEdit} className="px-1.5 py-0.5 text-[10px] bg-gray-700 text-gray-300 hover:bg-gray-600">✏️ 编辑</button>
-        )}
+      {/* Single row: title, status, priority, actions on right */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <h1 className="text-sm lg:text-lg font-semibold text-white">{task.title}</h1>
+          <span className={`px-1 py-0.5 text-[9px] font-medium border ${statusColors[task.status]}`}>{statusLabels[task.status]}</span>
+          <span className="px-1 py-0.5 text-[9px] font-medium bg-gray-500/20 text-gray-400 border border-gray-500/50">{priorityLabels[task.priority]}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          {onEdit && (
+            <button onClick={onEdit} className="px-1.5 py-0.5 text-[10px] bg-gray-700 text-gray-300 hover:bg-gray-600">✏️ 编辑</button>
+          )}
+          {onDelete && (
+            <button onClick={onDelete} className="px-1.5 py-0.5 text-[10px] bg-gray-700 text-gray-300 hover:bg-gray-600">🗑️ 删除</button>
+          )}
+          {onAcceptance && (
+            <button onClick={onAcceptance} className="px-1.5 py-0.5 text-[10px] bg-blue-600 text-white hover:bg-blue-700">✅ 验收</button>
+          )}
+        </div>
       </div>
       
       {/* Goal - core info */}

@@ -11,12 +11,11 @@ import AcceptanceModal from './AcceptanceModal';
 interface TaskDetailProps {
   task: Task;
   viewMode: 'list' | 'detail';
-  onBack: () => void;
   onSelectTask?: (task: Task) => void;
   parentTasks?: Task[];
 }
 
-export default function TaskDetail({ task, viewMode, onBack, onSelectTask, parentTasks = [] }: TaskDetailProps) {
+export default function TaskDetail({ task, viewMode, onSelectTask, parentTasks = [] }: TaskDetailProps) {
   const [checkedItems, setCheckedItems] = useState<Record<number, boolean>>({});
   const [acceptanceTriggerId, setAcceptanceTriggerId] = useState<string | null>(null);
   const [showAcceptanceModal, setShowAcceptanceModal] = useState(false);
@@ -85,6 +84,15 @@ export default function TaskDetail({ task, viewMode, onBack, onSelectTask, paren
     alert('编辑功能开发中...');
   };
 
+  const handleDelete = () => {
+    // TODO: Delete task
+    alert('删除功能开发中...');
+  };
+
+  const handleAcceptance = () => {
+    setShowAcceptanceModal(true);
+  };
+
   return (
     <div className="flex-1 h-full flex flex-col bg-[#0a0a0a]">
       <TaskHeader 
@@ -93,6 +101,8 @@ export default function TaskDetail({ task, viewMode, onBack, onSelectTask, paren
         checkedItems={checkedItems}
         onToggleCheck={toggleCheck}
         onEdit={handleEdit}
+        onDelete={handleDelete}
+        onAcceptance={handleAcceptance}
       />
       
       {viewMode === 'list' ? (

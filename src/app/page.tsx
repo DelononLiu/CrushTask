@@ -175,7 +175,6 @@ export default function Home() {
             key={selectedTask.id}
             task={selectedTask}
             viewMode={currentViewMode}
-            onBack={handleBack}
             onSelectTask={handleSelectTask}
             parentTasks={childTasks}
           />
