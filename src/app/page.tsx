@@ -61,6 +61,21 @@ function isAtomicTask(task: Task): boolean {
   return task.nodeType === 'task' && (!task.children || task.children.length === 0);
 }
 
+function findParentName(tasks: Task[], taskId: string, parentName?: string): string | null {
+  for (const task of tasks) {
+    if (task.children) {
+      for (const child of task.children) {
+        if (child.id === taskId) {
+          return task.title;
+        }
+      }
+      const found = findParentName(task.children, taskId, task.title);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
 export default function Home() {
   const [modules] = useState(() => expandAllModules(initialTasks));
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -77,6 +92,8 @@ export default function Home() {
     : (selectedTask && isAtomicTask(selectedTask) ? 'detail' : 'list');
 
   const childTasks = parentTaskId ? collectChildTasks(modules, parentTaskId) : (selectedTask ? collectChildTasks(modules, selectedTask.id) : []);
+  
+  const currentParentName = selectedTaskId ? findParentName(modules, selectedTaskId) : null;
 
   const handleSelectTask = (task: Task) => {
     if (selectedTaskId) {
@@ -119,13 +136,18 @@ export default function Home() {
     <div className="h-screen flex flex-col bg-[#0a0a0a] overflow-hidden">
       {/* Global Header */}
       <header className="h-12 flex-shrink-0 bg-gray-900 border-b border-gray-800 flex items-center px-2 z-50">
-        {/* Left: Menu button */}
-        <button 
-          onClick={toggleSidebar}
-          className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 text-lg"
-        >
-          {sidebarOpen ? '✕' : '☰'}
-        </button>
+        {/* Left: Menu button + Parent name */}
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={toggleSidebar}
+            className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 text-lg"
+          >
+            {sidebarOpen ? '✕' : '☰'}
+          </button>
+          {currentParentName && (
+            <span className="text-sm text-gray-400">{currentParentName}</span>
+          )}
+        </div>
         
         {/* Center: App title */}
         <div className="flex-1 flex justify-center items-center gap-2">
