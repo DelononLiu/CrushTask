@@ -53,8 +53,8 @@ export default function TaskHeader({ task, viewMode, checkedItems, onToggleCheck
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <h1 className="text-base lg:text-xl font-semibold text-white">{task.title}</h1>
-          <span className={`px-0.5 py-0 text-[8px] font-medium border ${statusColors[task.status]}`}>{statusLabels[task.status]}</span>
-          <span className="px-0.5 py-0 text-[8px] font-medium bg-gray-500/20 text-gray-400 border border-gray-500/50">{priorityLabels[task.priority]}</span>
+          <span className={`px-0.5 py-0.5 text-[8px] font-medium border ${statusColors[task.status]}`}>{statusLabels[task.status]}</span>
+          <span className="px-0.5 py-0.5 text-[8px] font-medium bg-gray-500/20 text-gray-400 border border-gray-500/50">{priorityLabels[task.priority]}</span>
         </div>
         <div className="flex items-center gap-1">
           {onEdit && (
