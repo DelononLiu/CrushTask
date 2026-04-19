@@ -136,7 +136,7 @@ export default function Home() {
     <div className="h-screen flex flex-col bg-[#0a0a0a] overflow-hidden">
       {/* Global Header */}
       <header className="h-12 flex-shrink-0 bg-gray-900 border-b border-gray-800 flex items-center px-2 z-50">
-        {/* Left: Menu button + Parent name */}
+        {/* Left: Menu button + App title + Parent name */}
         <div className="flex items-center gap-2">
           <button 
             onClick={toggleSidebar}
@@ -144,15 +144,13 @@ export default function Home() {
           >
             {sidebarOpen ? '✕' : '☰'}
           </button>
-          {currentParentName && (
-            <span className="text-sm text-gray-400">{currentParentName}</span>
-          )}
-        </div>
-        
-        {/* Center: App title */}
-        <div className="flex-1 flex justify-center items-center gap-2">
-          <span className="text-lg">📦</span>
           <span className="text-base font-semibold text-white">CrushTask</span>
+          <span className="text-gray-500">|</span>
+          {currentParentName ? (
+            <span className="text-sm text-gray-400">{currentParentName}</span>
+          ) : (
+            <span className="text-sm text-gray-500">产品</span>
+          )}
         </div>
         
         {/* Right: Placeholder for future actions */}
