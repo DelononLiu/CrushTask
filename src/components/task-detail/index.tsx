@@ -90,7 +90,6 @@ export default function TaskDetail({ task, viewMode, onBack, onSelectTask, paren
       <TaskHeader 
         task={task} 
         viewMode={viewMode} 
-        onBack={onBack} 
         checkedItems={checkedItems}
         onToggleCheck={toggleCheck}
         onEdit={handleEdit}
