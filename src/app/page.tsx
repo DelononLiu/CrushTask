@@ -76,6 +76,21 @@ function findParentName(tasks: Task[], taskId: string, parentName?: string): str
   return null;
 }
 
+function findGrandparentName(tasks: Task[], parentId: string): string | null {
+  for (const task of tasks) {
+    if (task.children) {
+      for (const child of task.children) {
+        if (child.id === parentId) {
+          return task.title;
+        }
+      }
+      const found = findGrandparentName(task.children, parentId);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
 export default function Home() {
   const [modules] = useState(() => expandAllModules(initialTasks));
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -109,11 +124,14 @@ export default function Home() {
   };
 
   const handleBack = () => {
-    if (parentTaskId) {
-      const parentTask = findTaskById(modules, parentTaskId);
-      setSelectedTaskId(parentTaskId);
+    const currentParentId = parentTaskId;
+    if (currentParentId) {
+      const parentTask = findTaskById(modules, currentParentId);
+      const grandParentId = findGrandparentName(modules, currentParentId);
+      
+      setSelectedTaskId(currentParentId);
       setViewMode(parentTask && isAtomicTask(parentTask) ? 'detail' : 'list');
-      setParentTaskId(null);
+      setParentTaskId(grandParentId);
     } else {
       setSelectedTaskId(null);
       setViewMode('list');
