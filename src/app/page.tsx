@@ -162,7 +162,7 @@ export default function Home() {
           >
             {sidebarOpen ? '✕' : '☰'}
           </button>
-          <span className="text-base font-semibold text-white">CrushTask</span>
+          <span className="text-base font-semibold text-gray-300">CrushTask</span>
           <span className="text-gray-500">|</span>
           {currentParentName ? (
             <span className="text-sm text-gray-400">{currentParentName}</span>
