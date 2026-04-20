@@ -31,6 +31,11 @@
 - [x] 创建 components-core/task-tree：TreeNode 组件
 - [x] 创建 components-core/task-detail：TaskDetail, TaskHeader, Chat 等组件
 - [x] 添加 VSCode 插件任务到示例数据
+- [x] 树形菜单改为VSCode文件浏览器风格：📦📂📁✓📄图标
+- [x] 移除状态点，使用图标颜色区分(绿色=完成，灰色=未完成)
+- [x] 选中背景改为VSCode灰(#37373D)，悬停改为(#2A2D2E)
+- [x] 任务标题改为灰色(text-gray-400/gray-200)，移除蓝色
+- [x] 修复ListView中的蓝色标题
 
 ## Current Structure
 
