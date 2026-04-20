@@ -9,27 +9,28 @@ interface TreeNodeProps {
   levels: { PROJECT: number; MODULE: number; SUBFEATURE: number; TASK: number };
 }
 
-const getNodeIcon = (task: Task, level: number, levels: TreeNodeProps['levels']): string => {
+const getNodeIcon = (task: Task, isExpanded: boolean): { icon: string; iconColor: string } => {
   if (task.nodeType === 'root') {
-    if (task.title === 'CrushTask') return '📦';
-    return '📋';
+    return { icon: '📦', iconColor: 'text-yellow-400' };
   }
-  if (task.nodeType === 'category' || level === levels.MODULE) {
-    return '📂';
+  const hasChildren = task.children && task.children.length > 0;
+  if (hasChildren) {
+    return isExpanded 
+      ? { icon: '📂', iconColor: 'text-gray-400' }
+      : { icon: '📁', iconColor: 'text-gray-400' };
   }
-  if (level === levels.SUBFEATURE) {
-    return '🔧';
+  if (task.status === 'completed') {
+    return { icon: '✓', iconColor: 'text-green-500' };
   }
-  if (level === levels.TASK || task.nodeType === 'task') {
-    return task.status === 'completed' ? '✅' : '📝';
-  }
-  return '📦';
+  return { icon: '📄', iconColor: 'text-gray-400' };
 };
 
 export default function TreeNode({ task, level, selectedTaskId, onSelectTask, statusColors, levels }: TreeNodeProps) {
   const hasChildren = task.children && task.children.length > 0;
   const isSelected = task.id === selectedTaskId;
   const isTask = level === levels.TASK || task.nodeType === 'task';
+  const isExpanded = task.expanded ?? false;
+  const nodeInfo = getNodeIcon(task, isExpanded);
 
   const handleClick = () => {
     onSelectTask(task);
@@ -38,39 +39,40 @@ export default function TreeNode({ task, level, selectedTaskId, onSelectTask, st
   return (
     <div key={task.id}>
       <div
-        className={`flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors ${
+        className={`flex items-center gap-1.5 px-1.5 py-1.5 cursor-pointer transition-colors ${
           isSelected
-            ? 'bg-blue-600/30 border-l-2 border-blue-500' 
-            : 'hover:bg-gray-800/50 border-l-2 border-transparent'
+            ? 'bg-[#37373D] border-l-2 border-gray-500' 
+            : 'hover:bg-[#2A2D2E] border-l-2 border-transparent'
         }`}
-        style={{ paddingLeft: `${12 + level * 16}px` }}
+        style={{ paddingLeft: `${8 + level * 16}px` }}
         onClick={handleClick}
       >
-        {hasChildren && (
-          <span className={`text-xs transition-transform ${task.expanded ? 'rotate-90' : ''}`}>
+        {hasChildren ? (
+          <span className={`w-4 text-xs text-gray-400 transition-transform ${isExpanded ? '-rotate-90' : ''}`}>
             ▶
           </span>
+        ) : (
+          <span className="w-4" />
         )}
-        {!hasChildren && <span className="w-4" />}
         
-        <span className={`w-2 h-2 rounded-full ${statusColors[task.status]}`} />
+        <span className={`text-sm ${nodeInfo.iconColor}`}>
+          {nodeInfo.icon}
+        </span>
         
         <span className={`text-sm truncate ${
           isTask
             ? isSelected 
-              ? 'text-[#165DFF] font-medium' 
-              : 'text-[#165DFF]'
+              ? 'text-gray-200 font-normal' 
+              : 'text-gray-400'
             : level === levels.PROJECT
               ? 'text-white font-medium'
-              : 'text-gray-400'
+              : 'text-gray-300'
         }`}>
-          {getNodeIcon(task, level, levels)} {task.title}
+          {task.title}
         </span>
-        
-        {isSelected && isTask && <span className="ml-auto text-[#165DFF]">▶</span>}
       </div>
 
-      {hasChildren && task.expanded && (
+      {hasChildren && isExpanded && (
         <div>
           {task.children.map(child => (
             <TreeNode 

@@ -75,7 +75,7 @@ export default function ListView({ task, parentTasks, onSelectTask }: ListViewPr
                 >
                   <div className="flex items-center gap-2 mb-2">
                     <span className={`w-2 h-2 rounded-full ${getStatusDotColor(t.status)}`}></span>
-                    <span className="text-sm font-medium text-[#165DFF]">{t.title}</span>
+                    <span className="text-sm font-medium text-gray-300">{t.title}</span>
                   </div>
                   <div className="text-xs text-gray-500">{t.module}{t.subFeature && ` → ${t.subFeature}`}</div>
                   <div className="flex items-center gap-2 mt-2">
